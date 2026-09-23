@@ -1,6 +1,6 @@
-# NAIL.GIRLY 💅
+# LocalNail Salon
 
-Y2K Aesthetic Nails — Online shop frontend (`index.html`) and staff admin panel (`admin.html`).
+Nails • Beauty • Self Care — the salon's single-page website (`index.html`).
 
 ## Run locally
 
@@ -10,8 +10,20 @@ npm start
 
 Then open http://localhost:3000
 
-- Shop: http://localhost:3000/
-- Admin: http://localhost:3000/admin.html
+## Editing content
+
+Everything customers read about services lives in **`salon-data.js`**:
+
+- `services` — the menu. Each price appears once here and is shown in both the
+  Services and the Services & Pricing sections.
+- `site` — address, phone, opening hours, social links, booking link
+  (`bookingUrl`), Google Maps links (`directionsUrl`, `mapEmbedUrl`) and an
+  optional photo of the printed menu (`menuImage`).
+- `gallery` — the Our Work photos. Put real photos in `images/work/` and list
+  them here. The current photos are stock images.
+- `testimonials` — replace the placeholders with real client reviews.
+
+The intro doors play once per browser session.
 
 ## Deploy on Railway
 
@@ -22,16 +34,11 @@ Then open http://localhost:3000
 
 ## Tech
 
-- Plain HTML + Tailwind (CDN)
-- Firebase Firestore — real-time products & orders shared across all devices
+- Plain HTML + Tailwind (CDN), no build step
 - Static server: `server.js` (Node, no dependencies)
 
-## Firebase
+## Legacy admin
 
-Config lives in `firebase-config.js`. Products and customer orders are stored in
-Firestore collections (`products`, `orders`), so orders placed by any customer
-appear instantly in the admin dashboard on any device. Receipt and product
-images are compressed in the browser before being saved.
-
-> Firestore is in **test mode** (open for 30 days). Before going fully live,
-> tighten the security rules in the Firebase console.
+`admin.html` and `firebase-config.js` belong to the earlier online-shop version
+(Firestore `products` and `orders`). The salon website no longer reads or writes
+them.

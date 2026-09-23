@@ -39,7 +39,9 @@ const server = http.createServer((req, res) => {
       return;
     }
     const ext = path.extname(safePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    // Pages and scripts must re-check so edits to salon-data.js (prices) show up at once.
+    const cache = ['.html', '.js', '.css', '.json'].includes(ext) ? 'no-cache' : 'public, max-age=604800';
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': cache });
     res.end(data);
   });
 });
