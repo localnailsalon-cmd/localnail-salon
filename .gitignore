@@ -18,3 +18,5 @@ data/.admin-password
 data/.spaces-key.json
 data/.spaces-key.err
 data/.session-secret-live
+data/.do-token
+data/.spaces-key-new.json

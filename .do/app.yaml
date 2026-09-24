@@ -44,7 +44,7 @@ services:
       # Spaces bucket that stores the salon's content and uploaded photos.
       - key: SPACES_BUCKET
         scope: RUN_TIME
-        value: localnail-salon
+        value: localnail-salon-media
       - key: SPACES_REGION
         scope: RUN_TIME
         value: sgp1
