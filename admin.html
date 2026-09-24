@@ -3,473 +3,585 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nail.Girly | Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase (real-time database for products & orders) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <meta name="robots" content="noindex, nofollow">
+    <title>LocalNail Salon — Manage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --milk: #F5F6F8;            /* cool white */
-            --y2k-pink: #8A9099;        /* main silver accent */
-            --soft-pink: #D7DBE0;       /* light silver (shadows) */
-            --accent-blue: #B4B9C1;     /* secondary silver */
-            --ink: #1F2329;             /* near-black text */
-            --chrome: linear-gradient(135deg, #EDEEF0 0%, #B9BEC6 20%, #F4F5F7 42%, #A2A8B0 60%, #DCDEE2 80%, #9CA1A9 100%);
+            --cream: #F8F9FA; --cream-soft: #EFF1F3; --ink: #16181B; --ink-soft: #32363B;
+            --muted: #676C73; --line: #E1E4E8; --card: #FFFFFF; --accent: #5C626A;
+            --ok: #1F7A4D; --warn: #B4402F;
+            --steel: linear-gradient(180deg, #5E656D 0%, #1B1E22 42%, #2B2F35 58%, #5A6068 100%);
         }
-
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }   /* our display rules must not defeat it */
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: var(--milk);
-            color: #333;
-            scroll-behavior: smooth;
+            margin: 0; font-family: 'Inter', sans-serif; background: var(--cream); color: var(--ink-soft);
+            -webkit-font-smoothing: antialiased;
         }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--ink); margin: 0; font-weight: 400; }
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--ink); }
+        .logo span {
+            font-family: 'Allura', cursive; font-size: 1.5rem; margin-left: .15em;
+            background-image: var(--steel); -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        button { font-family: inherit; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+            min-height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--ink);
+            background: var(--ink); color: #fff; font-size: 12px; font-weight: 600;
+            letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+            transition: background .2s, transform .15s, opacity .2s; text-decoration: none;
+        }
+        .btn:hover { background: #2E3238; }
+        .btn:active { transform: scale(.98); }
+        .btn[disabled] { opacity: .45; cursor: not-allowed; }
+        .btn-ghost { background: transparent; color: var(--ink); }
+        .btn-ghost:hover { background: var(--cream-soft); }
+        .btn-sm { min-height: 34px; padding: 0 12px; font-size: 11px; letter-spacing: .1em; }
+        .btn-danger { background: transparent; color: var(--warn); border-color: #E3C7C1; }
+        .btn-danger:hover { background: #FBF0EE; }
 
-        h1, h2, h3 {
-            font-family: 'Syne', sans-serif;
+        /* ---- login ---- */
+        .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+        .login {
+            background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+            padding: 40px 32px; width: 100%; max-width: 380px; text-align: center;
+            box-shadow: 0 30px 60px -40px rgba(22,24,27,.4);
         }
+        .login h1 { font-size: 1.6rem; margin-bottom: 6px; }
+        .login p { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
 
-        .glass-nav {
-            background: rgba(255, 253, 245, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid var(--y2k-pink);
+        /* ---- shell ---- */
+        header.bar {
+            position: sticky; top: 0; z-index: 20; background: rgba(248,249,250,.96);
+            border-bottom: 1px solid var(--line); backdrop-filter: blur(8px);
         }
+        .bar-in {
+            max-width: 1040px; margin: 0 auto; padding: 12px 20px;
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .bar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+        .status { font-size: 12px; color: var(--muted); min-width: 92px; text-align: right; }
+        .status.dirty { color: var(--warn); }
+        .status.saved { color: var(--ok); }
 
-        .marquee {
-            overflow: hidden;
-            white-space: nowrap;
-            background: var(--chrome);
-            padding: 10px 0;
-            border-top: 2px solid #000;
-            border-bottom: 2px solid #000;
+        nav.tabs {
+            max-width: 1040px; margin: 0 auto; padding: 0 20px 12px;
+            display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
         }
-        .animate-marquee { color: var(--ink) !important; }
-        
-        .animate-marquee {
-            display: inline-block;
-            animation: marquee 20s linear infinite;
+        nav.tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            border: 1px solid var(--line); background: transparent; color: var(--muted);
+            border-radius: 999px; padding: 8px 16px; font-size: 11px; font-weight: 600;
+            letter-spacing: .12em; text-transform: uppercase; cursor: pointer; white-space: nowrap;
         }
+        .tab[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+        main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 96px; }
+        .panel[hidden] { display: none; }
+        .card {
+            background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+            padding: 22px; margin-bottom: 18px;
         }
+        .card > h2 { font-size: 1.35rem; margin-bottom: 4px; }
+        .card > .hint, .hint { color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .grid2 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+        @media (min-width: 720px) { .grid2 { grid-template-columns: 1fr 1fr; } }
 
-        .y2k-btn {
-            background: var(--chrome);
-            color: var(--ink) !important;
-            box-shadow: 4px 4px 0px #000;
-            border: 2px solid #000;
-            transition: 0.2s;
+        label.field { display: block; margin-top: 14px; }
+        label.field > span {
+            display: block; font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+            font-weight: 600; color: var(--muted); margin-bottom: 6px;
         }
+        input, textarea, select {
+            width: 100%; font: inherit; font-size: 14px; color: var(--ink);
+            background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+        }
+        input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        textarea { min-height: 70px; resize: vertical; }
 
-        .y2k-btn:active {
-            box-shadow: 0px 0px 0px #000;
-            transform: translate(4px, 4px);
+        .row {
+            border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+            margin-top: 12px; background: #fff;
         }
+        .row-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .row-head strong { font-size: 13px; color: var(--ink); }
+        .row-tools { margin-left: auto; display: flex; gap: 6px; }
+        .icon-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line);
+            background: #fff; color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1;
+        }
+        .icon-btn:hover { color: var(--ink); border-color: #C6CCD3; }
 
-        .product-card {
-            background: white;
-            border: 2px solid #eee;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .photo-row { display: flex; gap: 14px; align-items: flex-start; }
+        .thumb {
+            width: 104px; height: 104px; flex: none; border-radius: 12px; overflow: hidden;
+            background: var(--cream-soft); border: 1px solid var(--line);
         }
-        .product-card:hover {
-            border-color: var(--y2k-pink);
-            transform: translateY(-10px) rotate(1deg);
-            box-shadow: 10px 10px 0px var(--soft-pink);
+        .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-fields { flex: 1; min-width: 0; }
+        .file-label {
+            display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
+            padding: 0 12px; border-radius: 999px; border: 1px solid var(--ink); background: transparent;
+            color: var(--ink); font-size: 11px; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; cursor: pointer;
         }
+        .file-label:hover { background: var(--cream-soft); }
+        .file-label input { display: none; }
 
-        .category-pill:hover, .category-pill.active {
-            background-color: var(--y2k-pink);
-            color: white;
-            border-color: black;
+        .toast {
+            position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px);
+            background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 999px;
+            font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 50;
         }
-
-        .order-card {
-            background: white;
-            border: 3px solid #000;
-            border-radius: 24px;
-        }
-
-        .hidden { display: none; }
-
-        /* ===== Silver Chrome theme overrides (maps old pink/blue to silver) ===== */
-        .text-pink-500 { color: #6E747C !important; }
-        .text-pink-400 { color: #9CA1A9 !important; }
-        .text-blue-400 { color: #9CA1A9 !important; }
-        .hover\:text-pink-500:hover { color: #3A3F47 !important; }
-        .bg-pink-500 { background-color: #6E747C !important; }
-        .bg-pink-100 { background-color: #ECEEF1 !important; }
-        .bg-pink-50  { background-color: #F2F3F5 !important; }
-        .border-pink-400 { border-color: #B4B9C1 !important; }
-        .hover\:bg-pink-50:hover { background-color: #F2F3F5 !important; }
-        /* Chrome shimmer for the logo + hero title */
-        nav .text-pink-500, nav .text-blue-400 {
-            background: var(--chrome);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(1px 1px 0 rgba(0,0,0,.25));
-        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.error { background: var(--warn); }
+        .savebar-space { height: 8px; }
     </style>
 </head>
 <body>
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 w-full max-w-sm text-center rounded-[30px] border-4 border-black shadow-[8px_8px_0px_#000]">
-            <h1 class="text-3xl font-black italic mb-6 uppercase text-pink-500">Staff Login</h1>
-            <input type="password" id="admin-pass" placeholder="Enter Password" class="w-full border-4 border-black p-4 rounded-2xl mb-4 font-bold outline-none">
-            <button onclick="requestNotifyAndLogin()" class="y2k-btn w-full py-4 text-white font-black uppercase rounded-2xl">Enter Dashboard</button>
-            <p class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Enable notifications to receive orders</p>
-        </div>
-    </div>
+<!-- ---------- login ---------- -->
+<div class="login-wrap" id="loginView">
+    <form class="login" id="loginForm">
+        <h1 class="logo">LocalNail<span>Salon</span></h1>
+        <p>Staff sign in</p>
+        <label class="field" style="text-align:left">
+            <span>Password</span>
+            <input type="password" id="password" autocomplete="current-password" required>
+        </label>
+        <p id="loginError" class="hint" style="color:var(--warn); margin-top:10px" hidden></p>
+        <button class="btn" type="submit" style="width:100%; margin-top:18px">Sign in</button>
+    </form>
+</div>
 
-    <!-- Dashboard Screen -->
-    <div id="dashboard" class="hidden">
-        <!-- Announcement Bar -->
-        <div class="marquee font-bold uppercase text-sm tracking-tighter italic">
-            <span class="inline-block animate-marquee italic text-white">
-                ADMIN MODE: MANAGING INVENTORY 💅 EDITING LIVE FRONTEND 🎀 ADMIN MODE: MANAGING INVENTORY 💅 EDITING LIVE FRONTEND 🎀
-            </span>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="glass-nav sticky top-0 z-50 px-6 py-4">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div class="text-3xl font-black italic tracking-tighter text-pink-500">
-                    NAIL<span class="text-blue-400">.ADMIN</span>
-                </div>
-                <div class="flex gap-2 sm:gap-4">
-                    <button id="view-toggle" onclick="toggleView()" class="px-4 sm:px-6 py-2 bg-black text-white font-bold rounded-xl text-xs uppercase">View Orders</button>
-                    <button onclick="logout()" class="px-6 py-2 bg-red-100 text-red-600 border-2 border-red-600 font-bold rounded-xl text-xs uppercase">Logout</button>
-                </div>
+<!-- ---------- app ---------- -->
+<div id="appView" hidden>
+    <header class="bar">
+        <div class="bar-in">
+            <span class="logo">LocalNail<span>Salon</span></span>
+            <span class="hint" style="font-size:11px; letter-spacing:.18em; text-transform:uppercase">Manage</span>
+            <div class="bar-actions">
+                <span class="status" id="status">Loaded</span>
+                <a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">View site</a>
+                <button class="btn btn-sm" id="saveBtn" disabled>Save changes</button>
+                <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
             </div>
+        </div>
+        <nav class="tabs" id="tabs" role="tablist">
+            <button class="tab" role="tab" data-tab="details" aria-selected="true">Salon details</button>
+            <button class="tab" role="tab" data-tab="services" aria-selected="false">Services &amp; prices</button>
+            <button class="tab" role="tab" data-tab="styles" aria-selected="false">Styles gallery</button>
+            <button class="tab" role="tab" data-tab="photos" aria-selected="false">Salon photos</button>
+            <button class="tab" role="tab" data-tab="reviews" aria-selected="false">Reviews</button>
         </nav>
+    </header>
 
-        <!-- Hero Section -->
-        <header class="py-12 px-6 text-center bg-[#EEF0F3] border-b border-black/5">
-            <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-7xl font-black italic mb-4 uppercase leading-tight">
-                Inventory <span class="text-transparent" style="-webkit-text-stroke: 1.5px #9CA1A9;">Control</span>
-            </h1>
-            <p id="inventory-subtext" class="font-bold text-gray-400 uppercase text-xs tracking-widest">Add or Edit your 2026 Collection below</p>
-        </header>
+    <main>
+        <section class="panel" id="panel-details"></section>
+        <section class="panel" id="panel-services" hidden></section>
+        <section class="panel" id="panel-styles" hidden></section>
+        <section class="panel" id="panel-photos" hidden></section>
+        <section class="panel" id="panel-reviews" hidden></section>
+    </main>
+</div>
 
-        <div id="inventory-view">
-            <!-- Categories Filters -->
-            <div class="max-w-7xl mx-auto px-6 py-6 flex gap-4 overflow-x-auto no-scrollbar" id="category-filters">
-                <button class="category-pill whitespace-nowrap border-2 border-black px-6 py-2 rounded-full font-bold uppercase text-xs active" onclick="filterAdmin('All Styles')">All Styles</button>
-                <button class="category-pill whitespace-nowrap border-2 border-gray-200 px-6 py-2 rounded-full font-bold uppercase text-xs text-gray-500" onclick="filterAdmin('Cyber Chrome')">Cyber Chrome</button>
-                <button class="category-pill whitespace-nowrap border-2 border-gray-200 px-6 py-2 rounded-full font-bold uppercase text-xs text-gray-500" onclick="filterAdmin('Milk Creamy')">Milk Creamy</button>
-                <button class="category-pill whitespace-nowrap border-2 border-gray-200 px-6 py-2 rounded-full font-bold uppercase text-xs text-gray-500" onclick="filterAdmin('Pink Butterfly')">Pink Butterfly</button>
-            </div>
+<div class="toast" id="toast"></div>
 
-            <!-- Admin Actions -->
-            <main class="max-w-7xl mx-auto px-6 py-6">
-                <button onclick="openAdminModal()" class="w-full py-6 border-4 border-dashed border-pink-400 rounded-3xl text-pink-500 font-black italic text-xl hover:bg-pink-50 transition mb-10">
-                    + ADD NEW PRODUCT
-                </button>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8" id="admin-product-grid"></div>
-            </main>
-        </div>
+<script>
+(function () {
+    'use strict';
 
-        <!-- Orders Content -->
-        <div id="orders-view" class="hidden max-w-7xl mx-auto px-6 py-10">
-            <div id="orders-grid" class="space-y-6">
-                <!-- Orders will appear here -->
-            </div>
-        </div>
-    </div>
+    var content = null;
+    var dirty = false;
 
-    <!-- Form Modal (Integrated Like Frontend) -->
-    <div id="form-modal" class="fixed inset-0 z-[600] hidden flex items-center justify-center p-4 backdrop-blur-sm bg-black/20">
-        <div class="bg-white w-full max-w-md rounded-[40px] p-6 sm:p-8 border-4 border-black shadow-[10px_10px_0px_#B9BEC6] relative max-h-[90vh] overflow-y-auto">
-            <h2 id="form-title" class="text-3xl font-black italic uppercase mb-8 text-pink-500 text-center">Add Product</h2>
-            <input type="hidden" id="edit-index" value="">
-            <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Product Name" class="w-full border-2 border-black p-4 rounded-2xl font-bold outline-none">
-                <input type="number" id="p-price" placeholder="Price ($)" class="w-full border-2 border-black p-4 rounded-2xl font-bold outline-none">
-                <select id="p-category" class="w-full border-2 border-black p-4 rounded-2xl font-bold bg-white outline-none">
-                    <option value="Cyber Chrome">Cyber Chrome</option>
-                    <option value="Milk Creamy">Milk Creamy</option>
-                    <option value="Pink Butterfly">Pink Butterfly</option>
-                </select>
-                <textarea id="p-desc" placeholder="Description" class="w-full border-2 border-black p-4 rounded-2xl font-bold h-24 outline-none"></textarea>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase text-gray-400 px-2">Upload Photo</label>
-                    <input type="file" id="p-file" accept="image/*" onchange="handleFileSelect(event)" class="w-full border-2 border-black p-3 rounded-2xl text-sm font-bold bg-white">
-                </div>
-            </div>
-            <div class="flex gap-4 mt-8">
-                <button onclick="closeAdminModal()" class="px-6 py-4 border-2 border-black font-bold uppercase rounded-2xl">Cancel</button>
-                <button onclick="saveProduct()" class="y2k-btn flex-grow py-4 text-white font-black uppercase rounded-2xl tracking-widest">Save</button>
-            </div>
-        </div>
-    </div>
+    /* ---------- tiny helpers ---------- */
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function el(id) { return document.getElementById(id); }
+    function toast(message, isError) {
+        var t = el('toast');
+        t.textContent = message;
+        t.classList.toggle('error', !!isError);
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+    }
+    function setDirty(state) {
+        dirty = state;
+        el('saveBtn').disabled = !state;
+        var s = el('status');
+        s.textContent = state ? 'Unsaved changes' : 'All changes saved';
+        s.className = 'status ' + (state ? 'dirty' : 'saved');
+    }
+    // "site.address" / "services.0.items.2.price" -> read & write into content
+    function getPath(path) {
+        return path.split('.').reduce(function (acc, key) { return acc == null ? acc : acc[key]; }, content);
+    }
+    function setPath(path, value) {
+        var keys = path.split('.');
+        var last = keys.pop();
+        var target = keys.reduce(function (acc, key) { return acc[key]; }, content);
+        target[last] = value;
+    }
 
-    <script>
-        // --- Live data from Firestore ---
-        let products = [];
-        let orders = [];
-        let selectedImageData = "";
-        let currentFilter = "All Styles";
-        let isOrderView = false;
-        let listenersStarted = false;
-        let seedAttempted = false;
+    /* ---------- field builders ---------- */
+    function field(label, path, opts) {
+        opts = opts || {};
+        var value = getPath(path);
+        var common = 'data-path="' + esc(path) + '"' + (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : '');
+        var input = opts.textarea
+            ? '<textarea ' + common + '>' + esc(value) + '</textarea>'
+            : '<input type="text" ' + common + ' value="' + esc(value) + '">';
+        return '<label class="field"><span>' + esc(label) + '</span>' + input +
+            (opts.hint ? '<span class="hint" style="text-transform:none;letter-spacing:0;margin-top:6px;display:block">' + esc(opts.hint) + '</span>' : '') +
+            '</label>';
+    }
+    function selectField(label, path, options) {
+        var value = getPath(path);
+        return '<label class="field"><span>' + esc(label) + '</span><select data-path="' + esc(path) + '">' +
+            options.map(function (o) {
+                return '<option value="' + esc(o.value) + '"' + (o.value === value ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+            }).join('') + '</select></label>';
+    }
+    // photo picker: thumbnail + replace button + alt text
+    function photoField(path, opts) {
+        opts = opts || {};
+        var entry = getPath(path) || {};
+        return '<div class="photo-row">' +
+            '<div class="thumb"><img src="' + esc(entry.src || '') + '" alt=""></div>' +
+            '<div class="photo-fields">' +
+                '<label class="file-label">Replace photo<input type="file" accept="image/*" data-upload="' + esc(path) + '.src"></label>' +
+                (opts.caption ? field('Caption (shown under the photo)', path + '.caption') : '') +
+                field('Description for screen readers', path + '.alt', { textarea: true }) +
+            '</div></div>';
+    }
 
-        // The 4 starter products, only used to seed an empty database once.
-        const baseProducts = [
-            { name: 'Milk Marble Pink', price: 22.00, desc: 'Modern Y2K Aesthetic', img: 'https://placehold.co/400x400/FFD1E3/FF8AD8?text=Soft+Nails', category: 'Milk Creamy' },
-            { name: 'Cyber Blue Star', price: 18.50, desc: 'Holographic Finish', img: 'https://placehold.co/400x400/A0E9FF/333?text=Blue+Chrome', category: 'Cyber Chrome' },
-            { name: 'Creamy Pearl', price: 25.00, desc: 'Elegant & Clean', img: 'https://placehold.co/400x400/FFF9FB/FF8AD8?text=Creamy+White', category: 'Milk Creamy' },
-            { name: 'Pink Heart 3D', price: 20.00, desc: 'Kawaii Y2K Style', img: 'https://placehold.co/400x400/E3D1FF/333?text=Heart+Nails', category: 'Pink Butterfly' }
-        ];
+    /* ---------- panels ---------- */
+    function renderDetails() {
+        var phones = [].concat(content.site.phone || []);
+        el('panel-details').innerHTML =
+            '<div class="card"><h2>Contact</h2>' +
+                '<p class="hint">Shown in the Visit section and in the footer.</p>' +
+                field('Address', 'site.address') +
+                '<label class="field"><span>Phone numbers</span>' +
+                    '<input type="text" data-phones value="' + esc(phones.join(', ')) + '">' +
+                    '<span class="hint" style="margin-top:6px;display:block">Separate several numbers with a comma. Each one becomes a tap-to-call link.</span>' +
+                '</label>' +
+                field('Opening hours', 'site.hours', { placeholder: '10 AM – 10 PM' }) +
+            '</div>' +
+            '<div class="card"><h2>Links</h2>' +
+                '<div class="grid2">' +
+                    field('Instagram', 'site.social.instagram') +
+                    field('Facebook', 'site.social.facebook') +
+                    field('TikTok', 'site.social.tiktok') +
+                    field('Google Maps (Get directions)', 'site.directionsUrl') +
+                '</div>' +
+                field('Booking link', 'site.bookingUrl', { hint: 'Leave empty and the Book buttons scroll to the contact section.' }) +
+                field('Google Maps embed link', 'site.mapEmbedUrl', { hint: 'Optional. Share → Embed a map → copy the src link. Empty shows the salon sign photo.' }) +
+            '</div>';
+    }
 
-        function requestNotifyAndLogin() {
-            if ("Notification" in window) {
-                Notification.requestPermission();
-            }
-            checkAuth();
-        }
-
-        function checkAuth() {
-            const pass = document.getElementById('admin-pass').value;
-            if (pass === 'Roth369') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                startListeners();
-            } else {
-                alert("Wrong password! 💅");
-            }
-        }
-
-        function startListeners() {
-            if (listenersStarted) return;
-            listenersStarted = true;
-
-            // Live products
-            db.collection('products').orderBy('createdAt', 'asc').onSnapshot(async (snap) => {
-                products = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-                if (snap.empty && !seedAttempted) {
-                    seedAttempted = true;
-                    await seedBaseProducts();
-                    return; // snapshot will fire again with the new products
-                }
-                renderAdminProducts();
-            }, (err) => console.error('Products load failed:', err));
-
-            // Live orders + desktop notification for new ones
-            let firstOrderSnapshot = true;
-            db.collection('orders').orderBy('createdAt', 'desc').onSnapshot((snap) => {
-                orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-                if (!firstOrderSnapshot) {
-                    snap.docChanges().forEach((change) => {
-                        if (change.type === 'added' && Notification.permission === 'granted') {
-                            new Notification("New Order Received! 🎀", {
-                                body: "A new customer has just placed an order. Check the dashboard!",
-                                icon: "https://placehold.co/100x100/FF8AD8/white?text=Order"
-                            });
-                        }
-                    });
-                }
-                firstOrderSnapshot = false;
-                renderOrders();
-            }, (err) => console.error('Orders load failed:', err));
-        }
-
-        async function seedBaseProducts() {
-            for (const p of baseProducts) {
-                await db.collection('products').add({
-                    ...p,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        }
-
-        function toggleView() {
-            isOrderView = !isOrderView;
-            const btn = document.getElementById('view-toggle');
-            const inv = document.getElementById('inventory-view');
-            const ord = document.getElementById('orders-view');
-            const title = document.getElementById('hero-title');
-            const sub = document.getElementById('inventory-subtext');
-
-            if (isOrderView) {
-                btn.innerText = "View Inventory";
-                inv.classList.add('hidden');
-                ord.classList.remove('hidden');
-                title.innerHTML = 'Customer <span class="text-blue-400">Orders</span>';
-                sub.classList.add('hidden');
-                renderOrders();
-            } else {
-                btn.innerText = "View Orders";
-                inv.classList.remove('hidden');
-                ord.classList.add('hidden');
-                title.innerHTML = 'Inventory <span class="text-pink-400">Control</span>';
-                sub.classList.remove('hidden');
-            }
-        }
-
-        function logout() { location.reload(); }
-
-        async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                selectedImageData = await compressImage(file, 800, 0.6);
-            }
-        }
-
-        function filterAdmin(category) {
-            currentFilter = category;
-            document.querySelectorAll('.category-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === category);
-            });
-            renderAdminProducts();
-        }
-
-        function renderAdminProducts() {
-            const grid = document.getElementById('admin-product-grid');
-            let filteredProducts = currentFilter === "All Styles" ? products : products.filter(p => p.category === currentFilter);
-
-            grid.innerHTML = filteredProducts.map((p) => {
-                return `
-                <div class="product-card p-3 rounded-3xl relative group flex flex-col">
-                    <div class="absolute top-2 right-2 z-20 flex gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="editProduct('${p.id}')" class="bg-yellow-400 p-2 rounded-lg border-2 border-black shadow-[2px_2px_0px_#000] text-sm">✏️</button>
-                        <button onclick="deleteProduct('${p.id}')" class="bg-red-400 p-2 rounded-lg border-2 border-black shadow-[2px_2px_0px_#000] text-sm">🗑️</button>
-                    </div>
-                    <div class="aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden relative">
-                        <img src="${p.img}" alt="${p.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                        <span class="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-widest bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full border border-black/10">${p.category}</span>
-                    </div>
-                    <h3 class="font-bold text-base sm:text-lg leading-tight truncate">${p.name}</h3>
-                    <p class="text-gray-400 text-xs mb-4 italic truncate">${p.desc}</p>
-                    <div class="flex justify-between items-center mt-auto">
-                        <span class="text-lg sm:text-xl font-black tracking-tight">$${p.price.toFixed(2)}</span>
-                        <span class="text-[10px] font-bold uppercase text-gray-500">${p.category}</span>
-                    </div>
-                </div>
-            `;
+    function renderServices() {
+        el('panel-services').innerHTML =
+            '<div class="card"><h2>Services &amp; prices</h2>' +
+            '<p class="hint">Each price appears once here and shows in both the Services list and the price menu.</p></div>' +
+            content.services.map(function (cat, ci) {
+                return '<div class="card">' +
+                    '<div class="row-head"><h3 style="font-size:1.2rem">' + esc(cat.title) + '</h3>' +
+                        '<div class="row-tools">' +
+                            '<button class="icon-btn" data-move="services" data-i="' + ci + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                            '<button class="icon-btn" data-move="services" data-i="' + ci + '" data-dir="1" title="Move down">&darr;</button>' +
+                        '</div></div>' +
+                    '<div class="grid2">' +
+                        field('Category name', 'services.' + ci + '.title') +
+                        field('Short line under the name', 'services.' + ci + '.intro') +
+                    '</div>' +
+                    cat.items.map(function (item, ii) {
+                        var base = 'services.' + ci + '.items.' + ii;
+                        return '<div class="row">' +
+                            '<div class="row-head"><strong>' + esc(item.name || 'New service') + '</strong>' +
+                                '<div class="row-tools">' +
+                                    '<button class="icon-btn" data-move="services.' + ci + '.items" data-i="' + ii + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                                    '<button class="icon-btn" data-move="services.' + ci + '.items" data-i="' + ii + '" data-dir="1" title="Move down">&darr;</button>' +
+                                    '<button class="icon-btn" data-remove="services.' + ci + '.items" data-i="' + ii + '" title="Remove">&times;</button>' +
+                                '</div></div>' +
+                            '<div class="grid2">' + field('Service', base + '.name') + field('Price', base + '.price', { placeholder: '$10' }) + '</div>' +
+                            field('Description', base + '.desc', { textarea: true }) +
+                        '</div>';
+                    }).join('') +
+                    '<div class="savebar-space"></div>' +
+                    '<button class="btn btn-ghost btn-sm" data-add="services.' + ci + '.items" data-kind="service">+ Add service</button>' +
+                '</div>';
             }).join('');
+    }
+
+    function renderStyles() {
+        var cats = [
+            { value: 'extensions', label: 'Extensions' },
+            { value: 'chrome', label: 'Chrome & 3D' },
+            { value: 'nail-art', label: 'Nail Art' }
+        ];
+        var shapes = [
+            { value: 'tall', label: 'Tall' },
+            { value: 'square', label: 'Square' },
+            { value: 'wide', label: 'Wide' }
+        ];
+        el('panel-styles').innerHTML =
+            '<div class="card"><h2>Styles gallery</h2>' +
+            '<p class="hint">The nail photos in the Styles section. Shape controls how tall the tile is.</p></div>' +
+            '<div class="card">' +
+            content.gallery.map(function (item, i) {
+                return '<div class="row"><div class="row-head"><strong>Photo ' + (i + 1) + '</strong>' +
+                    '<div class="row-tools">' +
+                        '<button class="icon-btn" data-move="gallery" data-i="' + i + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                        '<button class="icon-btn" data-move="gallery" data-i="' + i + '" data-dir="1" title="Move down">&darr;</button>' +
+                        '<button class="icon-btn" data-remove="gallery" data-i="' + i + '" title="Remove">&times;</button>' +
+                    '</div></div>' +
+                    '<div class="photo-row">' +
+                        '<div class="thumb"><img src="' + esc(item.src) + '" alt=""></div>' +
+                        '<div class="photo-fields">' +
+                            '<label class="file-label">Replace photo<input type="file" accept="image/*" data-upload="gallery.' + i + '.src"></label>' +
+                            '<div class="grid2">' +
+                                selectField('Label', 'gallery.' + i + '.category', cats) +
+                                selectField('Tile shape', 'gallery.' + i + '.shape', shapes) +
+                            '</div>' +
+                            field('Description for screen readers', 'gallery.' + i + '.alt', { textarea: true }) +
+                        '</div></div></div>';
+            }).join('') +
+            '<div class="savebar-space"></div>' +
+            '<button class="btn btn-ghost btn-sm" data-add="gallery" data-kind="gallery">+ Add photo</button>' +
+            '</div>';
+    }
+
+    function renderPhotos() {
+        var IMG = content.images;
+        el('panel-photos').innerHTML =
+            '<div class="card"><h2>Main photos</h2>' +
+                '<p class="hint">The storefront at the top, the About photo, the close-up in “More than a manicure”, and the sign in the Visit section.</p>' +
+                '<div class="row"><div class="row-head"><strong>Top of the page (storefront)</strong></div>' + photoField('images.hero') + '</div>' +
+                '<div class="row"><div class="row-head"><strong>About section</strong></div>' + photoField('images.about') + '</div>' +
+                '<div class="row"><div class="row-head"><strong>More than a manicure</strong></div>' + photoField('images.experience') + '</div>' +
+                '<div class="row"><div class="row-head"><strong>Visit section (salon sign)</strong></div>' + photoField('images.sign', { caption: true }) + '</div>' +
+            '</div>' +
+            '<div class="card"><h2>Inside the Salon</h2>' +
+                '<p class="hint">The row of square photos. Three across on a computer, swipeable on a phone.</p>' +
+                IMG.strip.map(function (item, i) {
+                    return '<div class="row"><div class="row-head"><strong>' + esc(item.caption || 'Photo ' + (i + 1)) + '</strong>' +
+                        '<div class="row-tools">' +
+                            '<button class="icon-btn" data-move="images.strip" data-i="' + i + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                            '<button class="icon-btn" data-move="images.strip" data-i="' + i + '" data-dir="1" title="Move down">&darr;</button>' +
+                            '<button class="icon-btn" data-remove="images.strip" data-i="' + i + '" title="Remove">&times;</button>' +
+                        '</div></div>' +
+                        photoField('images.strip.' + i, { caption: true }) + '</div>';
+                }).join('') +
+                '<div class="savebar-space"></div>' +
+                '<button class="btn btn-ghost btn-sm" data-add="images.strip" data-kind="strip">+ Add photo</button>' +
+            '</div>';
+    }
+
+    function renderReviews() {
+        el('panel-reviews').innerHTML =
+            '<div class="card"><h2>Reviews</h2>' +
+                '<p class="hint">Only publish words a client actually gave you.</p>' +
+                content.testimonials.map(function (t, i) {
+                    return '<div class="row"><div class="row-head"><strong>Review ' + (i + 1) + '</strong>' +
+                        '<div class="row-tools">' +
+                            '<button class="icon-btn" data-move="testimonials" data-i="' + i + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                            '<button class="icon-btn" data-move="testimonials" data-i="' + i + '" data-dir="1" title="Move down">&darr;</button>' +
+                            '<button class="icon-btn" data-remove="testimonials" data-i="' + i + '" title="Remove">&times;</button>' +
+                        '</div></div>' +
+                        field('What the client said', 'testimonials.' + i + '.quote', { textarea: true }) +
+                        field('Who said it', 'testimonials.' + i + '.label', { placeholder: 'LocalNail Client' }) +
+                        '</div>';
+                }).join('') +
+                '<div class="savebar-space"></div>' +
+                '<button class="btn btn-ghost btn-sm" data-add="testimonials" data-kind="review">+ Add review</button>' +
+            '</div>';
+    }
+
+    var renderers = {
+        details: renderDetails, services: renderServices,
+        styles: renderStyles, photos: renderPhotos, reviews: renderReviews
+    };
+    function renderPanel(name) { renderers[name](); }
+    function renderAll() { Object.keys(renderers).forEach(renderPanel); }
+
+    /* ---------- editing ---------- */
+    document.addEventListener('input', function (e) {
+        var target = e.target;
+        if (target.dataset.path) { setPath(target.dataset.path, target.value); setDirty(true); }
+        else if (target.hasAttribute('data-phones')) {
+            content.site.phone = target.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            setDirty(true);
         }
+    });
 
-        function renderOrders() {
-            const grid = document.getElementById('orders-grid');
-            if (orders.length === 0) {
-                grid.innerHTML = '<p class="text-center text-gray-400 font-bold py-20 uppercase tracking-widest">No orders yet... 🌸</p>';
-                return;
-            }
+    var BLANKS = {
+        service: { name: 'New service', price: '$0', desc: '' },
+        gallery: { src: '', category: 'nail-art', shape: 'square', alt: '' },
+        strip: { src: '', caption: 'New photo', alt: '' },
+        review: { quote: '', label: 'LocalNail Client' }
+    };
 
-            grid.innerHTML = orders.map((o) => `
-                <div class="order-card p-6 flex flex-col md:flex-row gap-6 animate-pop">
-                    <div class="w-full md:w-48 aspect-[3/4] border-2 border-black rounded-xl overflow-hidden bg-gray-100">
-                        <img src="${o.receipt}" class="w-full h-full object-cover cursor-zoom-in" onclick="window.open(this.src)">
-                    </div>
-                    <div class="flex-grow">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-2xl font-black italic uppercase text-pink-500">${o.name}</h3>
-                                <p class="text-xs font-bold text-gray-400">${o.date}</p>
-                            </div>
-                            <span class="px-4 py-1 bg-black text-white text-[10px] font-bold rounded-full uppercase">${o.city === 'Other' ? 'Overseas' : 'Local Cambodia'}</span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
-                            <p><strong>📞 Phone:</strong> ${o.phone}</p>
-                            <p><strong>📍 City:</strong> ${o.city}</p>
-                            <p class="sm:col-span-2"><strong>🗺️ Location:</strong> <a href="${o.location.includes('http') ? o.location : '#'}" target="_blank" class="text-blue-500 underline break-all">${o.location}</a></p>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-200">
-                            <p class="text-[10px] font-black uppercase mb-2">Order Items:</p>
-                            <ul class="text-xs space-y-1 mb-3">
-                                ${o.items.map(i => `<li>• ${i.name} ($${i.price.toFixed(2)})</li>`).join('')}
-                            </ul>
-                            <p class="text-lg font-black text-right uppercase">Total Paid: ${o.total}</p>
-                        </div>
-                    </div>
-                    <div class="flex md:flex-col justify-end gap-2">
-                        <button onclick="deleteOrder('${o.id}')" class="p-4 bg-red-100 text-red-600 border-2 border-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        var panel = btn.closest('.panel');
+        var panelName = panel ? panel.id.replace('panel-', '') : null;
+
+        if (btn.dataset.move) {
+            var list = getPath(btn.dataset.move);
+            var i = +btn.dataset.i, to = i + (+btn.dataset.dir);
+            if (to < 0 || to >= list.length) return;
+            list.splice(to, 0, list.splice(i, 1)[0]);
+            setDirty(true); renderPanel(panelName);
+        } else if (btn.dataset.remove) {
+            var arr = getPath(btn.dataset.remove);
+            if (!confirm('Remove this item? It disappears from the website when you save.')) return;
+            arr.splice(+btn.dataset.i, 1);
+            setDirty(true); renderPanel(panelName);
+        } else if (btn.dataset.add) {
+            getPath(btn.dataset.add).push(JSON.parse(JSON.stringify(BLANKS[btn.dataset.kind])));
+            setDirty(true); renderPanel(panelName);
         }
+    });
 
-        function deleteOrder(id) {
-            if (confirm("Clear this order from history?")) {
-                db.collection('orders').doc(id).delete()
-                    .catch((err) => { console.error(err); alert('Delete failed, try again.'); });
-            }
-        }
+    /* ---------- uploads ----------
+       The photo is shrunk in the browser first, so a 5 MB phone picture
+       travels as a ~150 KB WebP and the website stays fast. */
+    function shrink(file, maxSize) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                var img = new Image();
+                img.onload = function () {
+                    var w = img.width, h = img.height;
+                    if (Math.max(w, h) > maxSize) {
+                        if (w >= h) { h = Math.round(h * maxSize / w); w = maxSize; }
+                        else { w = Math.round(w * maxSize / h); h = maxSize; }
+                    }
+                    var canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/webp', 0.82));
+                };
+                img.onerror = function () { reject(new Error('That file is not an image')); };
+                img.src = ev.target.result;
+            };
+            reader.onerror = function () { reject(new Error('Could not read the file')); };
+            reader.readAsDataURL(file);
+        });
+    }
 
-        function openAdminModal() {
-            resetForm();
-            document.getElementById('form-modal').classList.remove('hidden');
-        }
+    document.addEventListener('change', function (e) {
+        var input = e.target;
+        if (!input.dataset.upload) return;
+        var file = input.files && input.files[0];
+        if (!file) return;
+        var path = input.dataset.upload;
+        var panel = input.closest('.panel');
+        var panelName = panel ? panel.id.replace('panel-', '') : null;
+        toast('Uploading photo…');
+        shrink(file, path === 'images.hero.src' ? 1600 : 1200)
+            .then(function (dataUrl) {
+                return fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: file.name, dataUrl: dataUrl })
+                });
+            })
+            .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+            .then(function (res) {
+                if (!res.ok) throw new Error(res.body.error || 'Upload failed');
+                setPath(path, res.body.src);
+                // the hero also carries a small version; point it at the same file
+                if (path === 'images.hero.src') content.images.hero.srcSmall = res.body.src;
+                setDirty(true);
+                renderPanel(panelName);
+                toast('Photo added — press Save changes');
+            })
+            .catch(function (err) { toast(err.message, true); });
+    });
 
-        function closeAdminModal() { document.getElementById('form-modal').classList.add('hidden'); }
+    /* ---------- save / session ---------- */
+    el('saveBtn').addEventListener('click', function () {
+        el('saveBtn').disabled = true;
+        el('status').textContent = 'Saving…';
+        fetch('/api/content', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(content)
+        }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+          .then(function (res) {
+              if (!res.ok) throw new Error(res.body.error || 'Could not save');
+              setDirty(false);
+              toast('Saved — the website is updated');
+          })
+          .catch(function (err) { setDirty(true); toast(err.message, true); });
+    });
 
-        async function saveProduct() {
-            const name = document.getElementById('p-name').value;
-            const price = parseFloat(document.getElementById('p-price').value);
-            const desc = document.getElementById('p-desc').value;
-            const category = document.getElementById('p-category').value;
-            const editId = document.getElementById('edit-index').value;
+    window.addEventListener('beforeunload', function (e) {
+        if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
 
-            if (!name || !price) { alert("Please fill Name and Price!"); return; }
+    el('tabs').addEventListener('click', function (e) {
+        var tab = e.target.closest('.tab');
+        if (!tab) return;
+        [].forEach.call(document.querySelectorAll('.tab'), function (t) {
+            t.setAttribute('aria-selected', String(t === tab));
+        });
+        [].forEach.call(document.querySelectorAll('.panel'), function (p) {
+            p.hidden = p.id !== 'panel-' + tab.dataset.tab;
+        });
+    });
 
-            try {
-                if (editId) {
-                    // Update existing product. Only change the image if a new one was picked.
-                    const data = { name, price, desc, category };
-                    if (selectedImageData) data.img = selectedImageData;
-                    await db.collection('products').doc(editId).update(data);
-                } else {
-                    await db.collection('products').add({
-                        name, price, desc, category,
-                        img: selectedImageData || 'https://placehold.co/400x400?text=Nail',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-                closeAdminModal();
-                alert("Success! The Shop is updated! 🎀");
-            } catch (err) {
-                console.error('Save failed:', err);
-                alert("Save failed. Please check your internet and try again.");
-            }
-        }
+    el('logoutBtn').addEventListener('click', function () {
+        if (dirty && !confirm('You have unsaved changes. Sign out anyway?')) return;
+        fetch('/api/logout', { method: 'POST' }).then(function () { location.reload(); });
+    });
 
-        function editProduct(id) {
-            const p = products.find((x) => x.id === id);
-            if (!p) return;
-            document.getElementById('form-title').innerText = "Edit Product";
-            document.getElementById('edit-index').value = id;
-            document.getElementById('p-name').value = p.name;
-            document.getElementById('p-price').value = p.price;
-            document.getElementById('p-desc').value = p.desc;
-            document.getElementById('p-category').value = p.category;
-            document.getElementById('p-file').value = "";
-            selectedImageData = "";
-            document.getElementById('form-modal').classList.remove('hidden');
-        }
+    el('loginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var error = el('loginError');
+        error.hidden = true;
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: el('password').value })
+        }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+          .then(function (res) {
+              if (!res.ok) { error.textContent = res.body.error || 'Wrong password'; error.hidden = false; return; }
+              start();
+          })
+          .catch(function () { error.textContent = 'Could not reach the server'; error.hidden = false; });
+    });
 
-        function resetForm() {
-            document.getElementById('form-title').innerText = "Add New Product";
-            document.getElementById('edit-index').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-desc').value = "";
-            document.getElementById('p-file').value = "";
-            selectedImageData = "";
-        }
+    function start() {
+        fetch('/api/content', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                content = data;
+                el('loginView').hidden = true;
+                el('appView').hidden = false;
+                renderAll();
+                setDirty(false);
+                el('status').textContent = 'Loaded';
+                el('status').className = 'status';
+            })
+            .catch(function () { toast('Could not load the content', true); });
+    }
 
-        function deleteProduct(id) {
-            if (confirm("Are you sure you want to delete this product?")) {
-                db.collection('products').doc(id).delete()
-                    .catch((err) => { console.error(err); alert('Delete failed, try again.'); });
-            }
-        }
-    </script>
+    fetch('/api/session').then(function (r) { return r.json(); }).then(function (s) {
+        if (s.signedIn) start();
+    }).catch(function () {});
+})();
+</script>
 </body>
 </html>

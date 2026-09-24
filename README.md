@@ -1,6 +1,7 @@
 # LocalNail Salon
 
-Nails • Beauty • Self Care — the salon's single-page website (`index.html`).
+Nails • Beauty • Self Care — the salon website (`index.html`) plus a small
+staff area (`admin.html`) for changing everything the website shows.
 
 ## Run locally
 
@@ -8,37 +9,70 @@ Nails • Beauty • Self Care — the salon's single-page website (`index.html`
 npm start
 ```
 
-Then open http://localhost:3000
+- Website: http://localhost:3000
+- Staff area: http://localhost:3000/admin
 
-## Editing content
+## Changing the website (no code)
 
-Everything customers read about services lives in **`salon-data.js`**:
+Sign in at `/admin` and edit:
 
-- `services` — the menu. Each price appears once here and is shown in both the
-  Services and the Services & Pricing sections.
-- `site` — address, phone, opening hours, social links, booking link
-  (`bookingUrl`), Google Maps links (`directionsUrl`, `mapEmbedUrl`) and an
-  optional photo of the printed menu (`menuImage`).
-- `gallery` — the Our Work photos. Put real photos in `images/work/` and list
-  them here. The current photos are stock images.
-- `testimonials` — replace the placeholders with real client reviews.
+| Tab | What it changes |
+| --- | --- |
+| Salon details | Address, phone numbers, opening hours, Instagram / Facebook / TikTok, Google Maps, booking link |
+| Services & prices | The whole menu. A price is typed once and appears in both the Services list and the price menu |
+| Styles gallery | The nail photos, their label and tile shape |
+| Salon photos | Storefront, About, "More than a manicure", the sign photo, and the Inside the Salon row |
+| Reviews | Client reviews |
 
-The intro doors play once per browser session.
+Press **Save changes** and the website updates immediately — no deploy needed.
+Photos are shrunk in the browser before upload, so a large phone picture
+becomes a small WebP file.
 
-## Deploy on Railway
+## Password
 
-1. Push this repo to GitHub.
-2. On Railway: **New Project → Deploy from GitHub repo → select NAIL.GIRLY**.
-3. Railway auto-detects Node and runs `npm start`. No extra config needed.
-4. Open the generated public URL.
+The password comes from the `ADMIN_PASSWORD` environment variable. Without it
+the server makes a random one, prints it in the log, and keeps it in `data/.dev-password` — **set a real one
+before going live**.
+
+```bash
+ADMIN_PASSWORD='something-long-and-private' npm start
+```
+
+## Where the content lives
+
+- `data/content.json` — everything the staff area edits. Keep this folder on a
+  persistent disk; back it up. `content.json.bak` holds the previous save.
+- `images/uploads/` — photos uploaded through the staff area.
+- `salon-data.js` — a copy of the original content, used only if the API is
+  unreachable so the page never renders blank.
+
+## Deploying on a DigitalOcean droplet
+
+1. Copy the project to the droplet and install Node 18+.
+2. Run it as a service (systemd or pm2) with `ADMIN_PASSWORD` set, for example:
+
+   ```bash
+   pm2 start server.js --name localnail --update-env
+   ```
+
+3. Put nginx in front as a reverse proxy to port 3000 and add HTTPS with
+   certbot. Pass the protocol through so the login cookie is marked `Secure`:
+
+   ```nginx
+   proxy_set_header X-Forwarded-Proto $scheme;
+   ```
+
+4. Keep `data/` and `images/uploads/` out of any deploy that wipes the folder —
+   those hold the salon's live content and photos.
 
 ## Tech
 
 - Plain HTML + Tailwind (CDN), no build step
-- Static server: `server.js` (Node, no dependencies)
+- `server.js` — static files plus a small JSON API, no dependencies
+- Only the website's own files are served; the server source, `data/` and
+  `.git` are not reachable over HTTP
 
-## Legacy admin
+## Legacy
 
-`admin.html` and `firebase-config.js` belong to the earlier online-shop version
-(Firestore `products` and `orders`). The salon website no longer reads or writes
-them.
+`firebase-config.js`, `seed-products.mjs` and `update-images.mjs` belong to the
+earlier online-shop version and are no longer used by the site.

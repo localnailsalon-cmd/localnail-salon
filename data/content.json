@@ -1,0 +1,299 @@
+{
+  "site": {
+    "name": "LocalNail Salon",
+    "tagline": "Nails • Beauty • Self Care",
+    "address": "26 2 Thnou St, Krong Siem Reap, Cambodia",
+    "phone": [
+      "085 883 993",
+      "070 291 777"
+    ],
+    "countryCode": "+855",
+    "hours": "10 AM – 10 PM",
+    "bookingUrl": "",
+    "directionsUrl": "https://www.google.com/maps/place/Local+nail+salon/@13.3563511,103.8544166,16z/data=!4m14!1m7!3m6!1s0x3110170076052649:0x9654c4120fef00ef!2sLocal+nail+salon!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1!3m5!1s0x3110170076052649:0x9654c4120fef00ef!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1",
+    "mapEmbedUrl": "",
+    "menuImage": "",
+    "social": {
+      "instagram": "https://www.instagram.com/localnailsalon",
+      "facebook": "https://www.facebook.com/share/1FAqe3r1hr/",
+      "tiktok": "https://www.tiktok.com/@localnailsalon4"
+    }
+  },
+  "images": {
+    "hero": {
+      "src": "images/salon-storefront.webp",
+      "srcSmall": "images/salon-storefront-640.webp",
+      "alt": "The LocalNail Salon storefront: a white facade with the lit arched LocalNail Salon sign above a glass entrance"
+    },
+    "about": {
+      "src": "images/salon/about-interior.webp",
+      "alt": "Inside LocalNail Salon: a client relaxing in the pedicure chair while a technician works, below the LocalNail Salon wall sign"
+    },
+    "experience": {
+      "src": "images/salon/craft-close.webp",
+      "alt": "A LocalNail technician shaping a client's nails with an e-file, with nail art decals laid out on the table"
+    },
+    "sign": {
+      "src": "images/salon-sign.webp",
+      "alt": "The lit arched LocalNail Salon sign above the salon entrance",
+      "caption": "Look for the lit arched LocalNail Salon sign."
+    },
+    "strip": [
+      {
+        "src": "images/salon/polish-wall.webp",
+        "caption": "Colour Wall",
+        "alt": "The backlit gel polish wall at LocalNail Salon, filled with colour bottles"
+      },
+      {
+        "src": "images/salon/station.webp",
+        "caption": "Nail Station",
+        "alt": "A technician working at a LocalNail nail station beside the polish shelves"
+      },
+      {
+        "src": "images/salon/pedicure-area.webp",
+        "caption": "Pedicure Lounge",
+        "alt": "The LocalNail pedicure area: three cushioned chairs with foot basins and colour charts"
+      },
+      {
+        "src": "images/salon/pedicure-detail.webp",
+        "caption": "Pedicure Care",
+        "alt": "Close-up of a pedicure in progress at LocalNail Salon"
+      },
+      {
+        "src": "images/salon/hair-styling.webp",
+        "caption": "Hair Styling",
+        "alt": "The LocalNail hair area with styling chairs and backlit oval mirrors"
+      },
+      {
+        "src": "images/salon/hair-wash.webp",
+        "caption": "Hair Wash & Spa",
+        "alt": "The LocalNail hair washing area with two reclining basin chairs"
+      }
+    ]
+  },
+  "services": [
+    {
+      "id": "manicure",
+      "title": "Manicure",
+      "intro": "Hand and nail care, from a classic finish to structured extensions.",
+      "items": [
+        {
+          "name": "Classic Manicure",
+          "price": "$4",
+          "desc": "Clean, shape and finish for a timeless look."
+        },
+        {
+          "name": "Gel Polish",
+          "price": "$10",
+          "desc": "A glossy gel finish with lasting color."
+        },
+        {
+          "name": "Chrome / Cat Eyes",
+          "price": "$12",
+          "desc": "A reflective finish for a distinctive look."
+        },
+        {
+          "name": "Hard Gel Overlay",
+          "price": "$20",
+          "desc": "Added structure over the natural nail."
+        },
+        {
+          "name": "Gel X Extension",
+          "price": "$20",
+          "desc": "Extension service for added length and shape."
+        },
+        {
+          "name": "Hard Gel Extension",
+          "price": "$25",
+          "desc": "Structured extensions with customized length and shape."
+        }
+      ]
+    },
+    {
+      "id": "pedicure",
+      "title": "Pedicure",
+      "intro": "Foot and nail care with a polished finish.",
+      "items": [
+        {
+          "name": "Classic Pedicure",
+          "price": "$5",
+          "desc": "Essential foot and nail care with a polished finish."
+        },
+        {
+          "name": "Gel Pedicure",
+          "price": "$10",
+          "desc": "Pedicure finished with gel color."
+        },
+        {
+          "name": "Foot Scrub",
+          "price": "$12",
+          "desc": "A refreshing exfoliating foot treatment."
+        }
+      ]
+    },
+    {
+      "id": "hair",
+      "title": "Hair",
+      "intro": "Washing, styling, spa and color.",
+      "items": [
+        {
+          "name": "Hair Wash",
+          "price": "$8",
+          "desc": "A clean and refreshing hair wash."
+        },
+        {
+          "name": "Hair Wash + Style",
+          "price": "$15",
+          "desc": "Hair wash followed by styling."
+        },
+        {
+          "name": "Hair Wash + Spa",
+          "price": "$20",
+          "desc": "Hair wash combined with a spa treatment."
+        },
+        {
+          "name": "Hair Style",
+          "price": "$15",
+          "desc": "Professional styling for your desired look."
+        },
+        {
+          "name": "Hair Color",
+          "price": "$35+",
+          "desc": "Hair coloring service starting from $35."
+        }
+      ]
+    },
+    {
+      "id": "waxing",
+      "title": "Waxing",
+      "intro": "Professional waxing, priced by service area.",
+      "items": [
+        {
+          "name": "Waxing",
+          "price": "$3–$25",
+          "desc": "Professional waxing service with pricing based on the service area."
+        }
+      ]
+    },
+    {
+      "id": "removal",
+      "title": "Removal",
+      "intro": "Gel and extension removal.",
+      "items": [
+        {
+          "name": "Remove Gel",
+          "price": "$2.50",
+          "desc": "Gel removal service."
+        },
+        {
+          "name": "Remove Extension",
+          "price": "$7",
+          "desc": "Extension removal service."
+        }
+      ]
+    },
+    {
+      "id": "addons",
+      "title": "Add-ons / Specials",
+      "intro": "Finishing details to personalize your set.",
+      "items": [
+        {
+          "name": "Simple Nail Art",
+          "price": "$1 / nail",
+          "desc": "Simple decorative nail details, priced per nail."
+        },
+        {
+          "name": "Detailed Nail Art",
+          "price": "$2 / nail",
+          "desc": "More detailed nail design, priced per nail."
+        },
+        {
+          "name": "French Tip",
+          "price": "$5",
+          "desc": "Classic French tip finish."
+        },
+        {
+          "name": "Ombré",
+          "price": "$5",
+          "desc": "Soft gradient nail finish."
+        }
+      ]
+    }
+  ],
+  "gallery": [
+    {
+      "src": "images/work/white-spikes-cross.webp",
+      "category": "extensions",
+      "shape": "tall",
+      "alt": "Long white stiletto nails with silver spikes, a chrome cross and hoop charms"
+    },
+    {
+      "src": "images/work/white-marble-crown.webp",
+      "category": "chrome",
+      "shape": "tall",
+      "alt": "White marble stiletto nails with silver swirls, pearls and a crystal crown charm"
+    },
+    {
+      "src": "images/work/smoke-marble-bubbles.webp",
+      "category": "chrome",
+      "shape": "tall",
+      "alt": "Grey smoke marble nails with 3D bubbles and silver beads"
+    },
+    {
+      "src": "images/work/lace-crosses-short.webp",
+      "category": "nail-art",
+      "shape": "square",
+      "alt": "Short nails with lace, white crosses, lettering and crystals"
+    },
+    {
+      "src": "images/work/white-chrome-swirls.webp",
+      "category": "chrome",
+      "shape": "square",
+      "alt": "White stiletto nails with silver chrome line art and a snakeskin finish"
+    },
+    {
+      "src": "images/work/nude-fleur-de-lis.webp",
+      "category": "extensions",
+      "shape": "square",
+      "alt": "Long nude stiletto nails with a silver fleur-de-lis charm and spikes"
+    },
+    {
+      "src": "images/work/clear-silver-foil.webp",
+      "category": "extensions",
+      "shape": "tall",
+      "alt": "Long clear stiletto nails with silver foil and beads"
+    },
+    {
+      "src": "images/work/white-silver-crosses.webp",
+      "category": "chrome",
+      "shape": "tall",
+      "alt": "White stiletto nails with silver cross charms and beaded outlines"
+    },
+    {
+      "src": "images/work/chrome-charms-short.webp",
+      "category": "nail-art",
+      "shape": "wide",
+      "alt": "Short nails in black and white with silver cross charms, chains and studs"
+    },
+    {
+      "src": "images/work/nude-studs-short.webp",
+      "category": "nail-art",
+      "shape": "wide",
+      "alt": "Short round nails in soft nude with silver studs and a crystal cross"
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "[ADD A REAL CLIENT REVIEW]",
+      "label": "LocalNail Client"
+    },
+    {
+      "quote": "[ADD A REAL CLIENT REVIEW]",
+      "label": "LocalNail Client"
+    },
+    {
+      "quote": "[ADD A REAL CLIENT REVIEW]",
+      "label": "LocalNail Client"
+    }
+  ]
+}

@@ -3,3 +3,13 @@ node_modules/
 .DS_Store
 *.log
 .claude/
+
+# runtime secrets and live data written by the running server
+data/.session-secret
+data/.dev-password
+data/*.bak
+data/*.tmp
+
+# photos uploaded through the staff area live on the server, not in git
+images/uploads/*
+!images/uploads/.gitkeep

@@ -11,9 +11,11 @@ window.SALON = {
   site: {
     name: 'LocalNail Salon',
     tagline: 'Nails • Beauty • Self Care',
-    address: '[ADD SALON ADDRESS]',
-    phone: '[ADD PHONE NUMBER]',
-    hours: '[ADD OPENING HOURS]',
+    address: '26 2 Thnou St, Krong Siem Reap, Cambodia',
+    // One or more numbers; each becomes a tap-to-call link.
+    phone: ['085 883 993', '070 291 777'],
+    countryCode: '+855',        // used to build the call links
+    hours: '10 AM – 10 PM',
 
     // Booking link (online booking page, Telegram, Messenger, etc.).
     // Leave empty to send "Book" buttons to the Visit / Contact section.
@@ -21,7 +23,7 @@ window.SALON = {
 
     // Google Maps: "directionsUrl" is the Share → link; "mapEmbedUrl" is the
     // Share → Embed a map → src URL. Leave empty to show the storefront photo.
-    directionsUrl: '',
+    directionsUrl: 'https://www.google.com/maps/place/Local+nail+salon/@13.3563511,103.8544166,16z/data=!4m14!1m7!3m6!1s0x3110170076052649:0x9654c4120fef00ef!2sLocal+nail+salon!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1!3m5!1s0x3110170076052649:0x9654c4120fef00ef!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1',
     mapEmbedUrl: '',
 
     // Optional photo of the printed menu, e.g. 'images/menu.webp'.
@@ -29,9 +31,9 @@ window.SALON = {
     menuImage: '',
 
     social: {
-      instagram: '#',
-      facebook: '#',
-      telegram: '#'
+      instagram: 'https://www.instagram.com/localnailsalon',
+      facebook: 'https://www.facebook.com/share/1FAqe3r1hr/',
+      tiktok: 'https://www.tiktok.com/@localnailsalon4'
     }
   },
 
@@ -103,20 +105,25 @@ window.SALON = {
   ],
 
   /* ---- Our Work gallery ----
-     category: classic | gel | nail-art | extensions
+     category: extensions | chrome | nail-art
      shape:    tall | square | wide  (controls the tile proportion)
      To add real LocalNail photos, put files in images/work/ and add entries
      like { src: 'images/work/extensions-01.webp', ... }. A missing file
      shows a neutral "photo coming soon" tile instead of a broken image.
-     The current photos are stock images — swap them for your own work. */
+     These are style references showing what the team can create, not photos
+     taken in the salon. Replace them with the salon's own photos when you
+     have them, and rename the section back to "Our Work". */
   gallery: [
-    { src: 'https://images.unsplash.com/photo-1604654894610-df63bc536371', category: 'nail-art',   shape: 'tall',   alt: 'Glossy black and tortoiseshell nail art' },
-    { src: 'https://images.unsplash.com/photo-1604902396830-aca29e19b067', category: 'extensions', shape: 'tall',   alt: 'Long almond-shaped nails in dusty pink' },
-    { src: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66', category: 'gel',        shape: 'square', alt: 'Soft grey, white and glitter gel manicure' },
-    { src: 'https://images.unsplash.com/photo-1610992015732-2449b76344bc', category: 'classic',    shape: 'wide',   alt: 'Natural nude almond nails' },
-    { src: 'https://images.unsplash.com/photo-1571290274554-6a2eaa771e5f', category: 'nail-art',   shape: 'square', alt: 'Colourful abstract nail art' },
-    { src: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702', category: 'classic',    shape: 'square', alt: 'Bright pink polish being applied' },
-    { src: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53', category: 'gel',        shape: 'wide',   alt: 'Nail technician finishing a gel manicure under the lamp' }
+    { src: 'images/work/white-spikes-cross.webp',    category: 'extensions', shape: 'tall',   alt: 'Long white stiletto nails with silver spikes, a chrome cross and hoop charms' },
+    { src: 'images/work/white-marble-crown.webp',    category: 'chrome',     shape: 'tall',   alt: 'White marble stiletto nails with silver swirls, pearls and a crystal crown charm' },
+    { src: 'images/work/smoke-marble-bubbles.webp',  category: 'chrome',     shape: 'tall',   alt: 'Grey smoke marble nails with 3D bubbles and silver beads' },
+    { src: 'images/work/lace-crosses-short.webp',    category: 'nail-art',   shape: 'square', alt: 'Short nails with lace, white crosses, lettering and crystals' },
+    { src: 'images/work/white-chrome-swirls.webp',   category: 'chrome',     shape: 'square', alt: 'White stiletto nails with silver chrome line art and a snakeskin finish' },
+    { src: 'images/work/nude-fleur-de-lis.webp',     category: 'extensions', shape: 'square', alt: 'Long nude stiletto nails with a silver fleur-de-lis charm and spikes' },
+    { src: 'images/work/clear-silver-foil.webp',     category: 'extensions', shape: 'tall',   alt: 'Long clear stiletto nails with silver foil and beads' },
+    { src: 'images/work/white-silver-crosses.webp',  category: 'chrome',     shape: 'tall',   alt: 'White stiletto nails with silver cross charms and beaded outlines' },
+    { src: 'images/work/chrome-charms-short.webp',   category: 'nail-art',   shape: 'wide',   alt: 'Short nails in black and white with silver cross charms, chains and studs' },
+    { src: 'images/work/nude-studs-short.webp',      category: 'nail-art',   shape: 'wide',   alt: 'Short round nails in soft nude with silver studs and a crystal cross' }
   ],
 
   /* ---- Reviews: replace with real client reviews ---- */

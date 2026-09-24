@@ -9,25 +9,50 @@
     <meta property="og:description" content="Nail care, beauty and self-care services including manicure, pedicure, gel, nail art, hair and waxing.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="images/salon-storefront.webp">
-    <meta name="theme-color" content="#FBF8F3">
+    <meta name="theme-color" content="#F8F9FA">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="images/salon-storefront.webp" imagesrcset="images/salon-storefront-640.webp 640w, images/salon-storefront.webp 1067w" imagesizes="(min-width: 768px) 46vw, 92vw">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        /* White / silver / chrome — matched to the salon's nail work */
         :root {
-            --cream: #FBF8F3;         /* warm ivory background */
-            --cream-soft: #F4EFE6;    /* soft off-white section */
-            --ink: #1C1917;           /* near-black */
-            --ink-soft: #3A3532;      /* body text */
-            --muted: #6F655B;         /* secondary text (AA on cream) */
-            --gold: #B08D57;          /* champagne gold — decorative */
-            --gold-text: #86683C;     /* gold for small text (AA on cream) */
-            --gold-soft: #E7D9BE;
-            --border: #E7E0D2;        /* warm hairline */
-            --card: #FFFDF9;
+            --cream: #F8F9FA;         /* soft white background */
+            --cream-soft: #EFF1F3;    /* light silver section */
+            --ink: #16181B;           /* near-black */
+            --ink-soft: #32363B;      /* body text */
+            --muted: #676C73;         /* secondary text (AA on background) */
+            --gold: #9AA1A9;          /* silver — decorative */
+            --gold-text: #5C626A;     /* steel for small text (AA on background) */
+            --gold-soft: #DDE1E6;     /* pale silver surface */
+            --border: #E1E4E8;        /* cool hairline */
+            --card: #FFFFFF;
+            --chrome: linear-gradient(180deg, #FFFFFF 0%, #D8DCE2 22%, #99A0A8 50%, #C7CCD3 72%, #F5F7F9 100%);
+            --steel: linear-gradient(180deg, #8F969F 0%, #4A5058 42%, #2C3036 56%, #6F767F 82%, #A9B0B8 100%);
+            --steel-dark: linear-gradient(180deg, #5E656D 0%, #1B1E22 42%, #2B2F35 58%, #5A6068 100%);
+        }
+
+        /* script accent — matches the "Salon" handwriting on the salon sign */
+        /* the script's strokes are thin, so it gets a darker chrome than display type */
+        .script.chrome-text {
+            background-image: var(--steel-dark);
+        }
+        .script {
+            font-family: 'Allura', cursive;
+            font-style: normal;
+            font-size: 1.42em;
+            line-height: .95;
+            display: inline-block;
+            padding-bottom: .12em;
+        }
+
+        /* polished-steel lettering for large display type */
+        .chrome-text {
+            background: var(--steel);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .9));
         }
 
         html { scroll-behavior: smooth; }
@@ -57,27 +82,80 @@
             font-family: 'Playfair Display', serif; color: var(--ink);
             font-size: clamp(2.25rem, 4.6vw, 3.75rem); line-height: 1.08; letter-spacing: -.01em;
         }
-        .section-title em { font-style: italic; color: var(--gold-text); }
+        .section-title em.script { background-image: var(--steel-dark); font-style: normal; }
+        .section-title em {
+            font-style: italic;
+            background: var(--steel);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .9));
+        }
         .lede { color: var(--muted); font-size: 1.0625rem; line-height: 1.75; }
 
-        /* ===== Scroll reveal (subtle, respects reduced motion) ===== */
-        .reveal-up {
-            opacity: 0;
-            transform: translateY(22px);
-            transition: opacity .8s cubic-bezier(0.16, 1, 0.3, 1), transform .8s cubic-bezier(0.16, 1, 0.3, 1);
+        /* ===== Motion system =================================================
+           One set of tokens drives every reveal, stagger and hover on the page
+           so the whole site moves with the same rhythm. Only opacity, transform
+           and (sparingly) filter are animated — all GPU friendly. */
+        :root {
+            --ease-out: cubic-bezier(.16, 1, .3, 1);
+            --ease-soft: cubic-bezier(.33, 1, .68, 1);
+            --rev-dur: .9s;
+            --rev-shift: 28px;
+            --hover-dur: .35s;
+            --scroll-dir: 1;              /* 1 = scrolling down, -1 = up */
         }
-        .reveal-up.visible { opacity: 1; transform: none; }
+
+        [data-reveal] {
+            opacity: 0;
+            transform: translate3d(0, calc(var(--rev-shift) * var(--scroll-dir)), 0);
+            transition:
+                opacity var(--rev-dur) var(--ease-out) var(--rev-delay, 0ms),
+                transform var(--rev-dur) var(--ease-out) var(--rev-delay, 0ms),
+                filter var(--rev-dur) var(--ease-out) var(--rev-delay, 0ms);
+        }
+        /* headings and small type resolve out of a soft blur */
+        [data-reveal="soft"] { filter: blur(7px); }
+        /* cards settle in from slightly back */
+        [data-reveal="scale"] { transform: translate3d(0, calc(var(--rev-shift) * var(--scroll-dir)), 0) scale(.97); }
+        /* photographs drift up while the image itself eases out of an overscan */
+        [data-reveal="image"] { --rev-shift: 36px; }
+        [data-reveal="image"] img { transform: scale(1.07); transition: transform 1.4s var(--ease-out) var(--rev-delay, 0ms); }
+
+        [data-reveal].is-in { opacity: 1; transform: none; filter: none; }
+        [data-reveal="image"].is-in img { transform: scale(1); }
+
         @media (prefers-reduced-motion: reduce) {
-            .reveal-up { opacity: 1 !important; transform: none !important; transition: none !important; }
+            [data-reveal], [data-reveal] img {
+                opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
+            }
+        }
+
+        /* parallax drift is applied on a wrapper so it never fights the reveal */
+        .has-parallax.parallax-on { transform: translate3d(0, var(--parallax-y, 0px), 0); transition: none; }
+        @media (prefers-reduced-motion: reduce) { .has-parallax.parallax-on { transform: none; } }
+
+        /* reading progress along the top of the header */
+        .scroll-progress {
+            position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+            background: transparent; overflow: hidden; pointer-events: none;
+        }
+        .scroll-progress i {
+            display: block; height: 100%; width: 100%;
+            background: var(--chrome);
+            transform: scaleX(var(--progress, 0)); transform-origin: 0 50%;
         }
 
         /* ===== Header ===== */
         .site-header {
-            background: rgba(251, 248, 243, .96);
+            background: rgba(248, 249, 250, .96);
             border-bottom: 1px solid var(--border);
         }
         .logo { font-family: 'Playfair Display', serif; color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
-        .logo span { font-style: italic; color: var(--gold-text); margin-left: .25em; }
+        .logo span {
+            font-family: 'Allura', cursive;
+            font-style: normal; font-size: 1.34em; margin-left: .2em;
+            background-image: var(--steel-dark);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
 
         /* ===== Welcome intro: full-screen salon doors open onto the page ===== */
         html.intro-lock, html.intro-lock body { overflow: hidden; }
@@ -229,7 +307,7 @@
             padding: 4px; border-radius: 999px;
             background: #FFFDF9;
             border: 1px solid var(--border);
-            box-shadow: 0 8px 24px -16px rgba(28, 25, 23, .22);
+            box-shadow: 0 8px 24px -16px rgba(22, 24, 27, .22);
         }
         .dock-item {
             display: inline-flex; align-items: center; justify-content: center;
@@ -249,11 +327,13 @@
             min-height: 48px; padding: 0 28px; border-radius: 999px;
             font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
             text-decoration: none; cursor: pointer; white-space: nowrap;
-            transition: background .25s ease, color .25s ease, border-color .25s ease, transform .15s ease;
+            transition: background var(--hover-dur) var(--ease-soft), color var(--hover-dur) var(--ease-soft),
+                        border-color var(--hover-dur) var(--ease-soft), transform .25s var(--ease-soft), box-shadow .3s var(--ease-soft);
         }
-        .btn:active { transform: scale(.98); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -14px rgba(22, 24, 27, .55); }
+        .btn:active { transform: translateY(0) scale(.98); box-shadow: none; }
         .btn-primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
-        .btn-primary:hover { background: #3A3430; border-color: #3A3430; }
+        .btn-primary:hover { background: #2E3238; border-color: #2E3238; }
         .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
         .btn-secondary:hover { background: var(--ink); color: #fff; }
         .btn-light { background: var(--cream); color: var(--ink); border: 1px solid var(--cream); }
@@ -269,16 +349,36 @@
 
         /* ===== Photos ===== */
         .photo { overflow: hidden; border-radius: 1.5rem; background: var(--cream-soft); }
-        .photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(.16, 1, .3, 1); }
-        .photo:hover img { transform: scale(1.03); }
+        .photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.1s var(--ease-out); }
+        .photo:hover img { transform: scale(1.045); }
         @media (prefers-reduced-motion: reduce) { .photo img { transition: none; } .photo:hover img { transform: none; } }
 
-        /* ===== Services (editorial menu) ===== */
-        .svc-row { padding: 18px 0; border-bottom: 1px solid var(--border); }
+        /* ===== Services (names + what they are; prices live in the menu) ===== */
+        .svc-row { border-bottom: 1px solid var(--border); }
         .svc-row:last-child { border-bottom: 0; }
-        .svc-name { color: var(--ink); font-weight: 500; font-size: 1rem; }
-        .svc-price { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-        .svc-desc { color: var(--muted); font-size: .9rem; line-height: 1.6; margin-top: 4px; max-width: 34ch; }
+        .svc-link {
+            display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 16px;
+            padding: 17px 0; text-decoration: none; cursor: pointer;
+        }
+        .svc-name {
+            color: var(--ink); font-weight: 500; font-size: 1.0625rem;
+            transition: color .2s ease;
+        }
+        .svc-desc {
+            grid-column: 1 / -1;
+            color: var(--muted); font-size: .9rem; line-height: 1.6; max-width: 38ch;
+        }
+        .svc-cta {
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+            font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+            color: var(--gold-text); opacity: 0; transform: translateX(-4px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .svc-link:hover .svc-name, .svc-link:focus-visible .svc-name { color: var(--gold-text); transform: translateX(4px); }
+        .svc-name { transition: color var(--hover-dur) var(--ease-soft), transform var(--hover-dur) var(--ease-soft); }
+        .svc-link:hover .svc-cta, .svc-link:focus-visible .svc-cta { opacity: 1; transform: none; }
+        @media (hover: none) { .svc-cta { opacity: .75; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .svc-cta, .svc-name { transition: none; } }
 
         /* ===== Pricing (printed-menu card) ===== */
         .menu-card {
@@ -293,20 +393,33 @@
             font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; font-weight: 600; color: var(--ink);
             padding-bottom: 12px; border-bottom: 1px solid var(--ink); margin-bottom: 6px;
         }
-        .menu-row { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; }
-        .menu-row .leader { flex: 1; border-bottom: 1px dotted #C9BFAE; transform: translateY(-4px); min-width: 16px; }
+        .menu-row {
+            position: relative; display: flex; align-items: baseline; gap: 10px;
+            padding: 9px 10px; margin: 0 -10px; border-radius: 8px;
+            scroll-margin-top: 140px; transition: background .45s ease;
+        }
+        .menu-row .leader { flex: 1; border-bottom: 1px dotted #C2C7CE; transform: translateY(-4px); min-width: 16px; }
         .menu-row .name { color: var(--ink-soft); }
-        .menu-row .price { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .menu-row .price {
+            color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+            transition: transform .45s cubic-bezier(.34, 1.56, .64, 1);
+        }
+        /* the dot marks the service a visitor just tapped in Services */
+        .menu-row::before {
+            content: ''; position: absolute; left: -10px; top: 50%;
+            width: 7px; height: 7px; border-radius: 50%; background: var(--ink);
+            transform: translateY(-50%) scale(0);
+            transition: transform .4s cubic-bezier(.34, 1.56, .64, 1);
+        }
+        .menu-row.is-highlighted { background: var(--gold-soft); }
+        .menu-row.is-highlighted::before { transform: translateY(-50%) scale(1); }
+        .menu-row.is-highlighted .price { transform: scale(1.12); }
+        .menu-row:focus { outline: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .menu-row, .menu-row::before, .menu-row .price { transition: none; }
+        }
 
         /* ===== Gallery ===== */
-        .filter-btn {
-            min-height: 40px; padding: 0 18px; border-radius: 999px;
-            border: 1px solid var(--border); background: transparent; color: var(--muted);
-            font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
-            cursor: pointer; transition: all .2s ease;
-        }
-        .filter-btn:hover { color: var(--ink); border-color: #CDBFA8; }
-        .filter-btn[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
         /* masonry by row spans: a row unit sized so a 4-row tile is square */
         .gallery {
             display: grid; grid-auto-flow: dense;
@@ -323,20 +436,41 @@
         .g-item.is-tall   { grid-row: span 5; }
         .g-item.is-square { grid-row: span 4; }
         .g-item.is-wide   { grid-row: span 3; }
-        .g-item[hidden] { display: none; }
         .g-item .photo { border-radius: 1.1rem; flex: 1 1 auto; min-height: 0; }
+        .g-item { transition: transform .5s var(--ease-out); }
+        .g-item:hover { transform: translateY(-6px); }
+        .g-item:hover figcaption { color: var(--ink); }
         .g-item figcaption {
             flex: none; height: 30px; padding-top: 10px;
+            transition: color var(--hover-dur) var(--ease-soft);
             font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
             font-weight: 600; color: var(--muted);
         }
         .g-placeholder {
             width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
             font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
-            border: 1px dashed #D8CDBA; border-radius: inherit;
+            border: 1px dashed #CBD1D8; border-radius: inherit;
         }
-        .g-item.fade-in { animation: gIn .5s ease both; }
-        @keyframes gIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* Salon floor photos: three across on desktop, one large swipeable
+           card at a time on phones so the detail is actually visible. */
+        .salon-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+        .salon-strip li { list-style: none; transition: transform .5s var(--ease-out); }
+        .salon-strip li:hover { transform: translateY(-6px); }
+        .salon-strip figcaption {
+            margin-top: 10px; font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
+            font-weight: 600; color: var(--muted);
+        }
+        @media (max-width: 767px) {
+            .salon-strip {
+                display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain;
+                scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+                margin-inline: -20px; padding: 0 20px 4px;
+                scrollbar-width: none;
+            }
+            .salon-strip::-webkit-scrollbar { display: none; }
+            .salon-strip li { flex: 0 0 84%; scroll-snap-align: center; }
+        }
 
         /* ===== Mobile menu ===== */
         .mobile-menu {
@@ -356,8 +490,20 @@
         }
         .mobile-menu a.m-link small { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: .2em; color: var(--muted); }
 
+        .social-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: inherit; text-decoration: none; transition: color .2s ease;
+        }
+        .social-link svg { width: 17px; height: 17px; fill: currentColor; flex: none; }
+        .social-link span { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--gold); }
+        .social-link:hover { color: var(--gold-text); }
+        .phone-link { color: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--gold); transition: color var(--hover-dur) var(--ease-soft); }
+        .phone-link:hover { color: var(--gold-text); }
+        .social-link svg { transition: transform var(--hover-dur) var(--ease-soft); }
+        .social-link:hover svg { transform: translateY(-2px); }
+
         dialog.menu-dialog { border: 0; padding: 0; background: transparent; max-width: min(92vw, 720px); }
-        dialog.menu-dialog::backdrop { background: rgba(28, 25, 23, .6); }
+        dialog.menu-dialog::backdrop { background: rgba(22, 24, 27, .6); }
     </style>
 </head>
 <body>
@@ -431,13 +577,14 @@
 
     <!-- Header -->
     <header class="site-header sticky top-0 z-50">
+        <div class="scroll-progress" aria-hidden="true"><i id="scrollProgress"></i></div>
         <div class="max-w-7xl mx-auto px-5 md:px-8 h-[68px] flex items-center justify-between gap-4">
             <a href="#top" class="logo text-[1.45rem] md:text-[1.7rem]" aria-label="LocalNail Salon — back to top">LocalNail<span>Salon</span></a>
 
             <nav class="hidden lg:flex" aria-label="Main">
                 <div class="dock" id="navDock">
                     <a href="#services" class="dock-item" data-section="services">Services</a>
-                    <a href="#work" class="dock-item" data-section="work">Our Work</a>
+                    <a href="#work" class="dock-item" data-section="work">Styles</a>
                     <a href="#about" class="dock-item" data-section="about">About</a>
                     <a href="#pricing" class="dock-item" data-section="pricing">Pricing</a>
                     <a href="#contact" class="dock-item" data-section="contact">Contact</a>
@@ -465,7 +612,7 @@
         </div>
         <nav class="mt-6" aria-label="Mobile">
             <a class="m-link" href="#services">Services <small>01</small></a>
-            <a class="m-link" href="#work">Our Work <small>02</small></a>
+            <a class="m-link" href="#work">Styles <small>02</small></a>
             <a class="m-link" href="#about">About <small>03</small></a>
             <a class="m-link" href="#pricing">Pricing <small>04</small></a>
             <a class="m-link" href="#contact">Contact <small>05</small></a>
@@ -479,10 +626,10 @@
         <!-- Hero -->
         <section id="top" class="border-b border-[var(--border)]">
             <div class="max-w-7xl mx-auto px-5 md:px-8 pt-8 pb-16 md:py-24 grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-                <div class="reveal-up text-center md:text-left order-2 md:order-1">
+                <div class="text-center md:text-left order-2 md:order-1" data-reveal-group>
                     <p class="eyebrow mb-5">Nails &bull; Beauty &bull; Self Care</p>
                     <h1 class="text-[3.1rem] sm:text-6xl lg:text-7xl leading-[1.04] text-[var(--ink)] mb-6 tracking-[-0.01em]">
-                        Good Nails,<br><em class="italic text-[var(--gold-text)] font-normal">Good Mood.</em>
+                        Good Nails,<br><em class="script chrome-text">Good Mood.</em>
                     </h1>
                     <p class="lede mb-9 max-w-md mx-auto md:mx-0">
                         Small details make a big difference. Thoughtful nail care, beautiful finishes, and a relaxing experience at LocalNail Salon.
@@ -492,9 +639,9 @@
                         <a href="#services" class="btn btn-secondary">View Services</a>
                     </div>
                 </div>
-                <div class="reveal-up relative order-1 md:order-2">
+                <div class="relative order-1 md:order-2" data-reveal="image" data-parallax="0.05">
                     <div class="photo aspect-[4/5] md:aspect-[3/4] shadow-[0_30px_60px_-30px_rgba(28,25,23,.35)] border border-[var(--border)]">
-                        <img src="images/salon-storefront.webp"
+                        <img id="heroImg" src="images/salon-storefront.webp"
                              srcset="images/salon-storefront-640.webp 640w, images/salon-storefront.webp 1067w"
                              sizes="(min-width: 768px) 46vw, 92vw"
                              width="1067" height="1474" fetchpriority="high"
@@ -511,14 +658,17 @@
         <!-- Services -->
         <section id="services" class="py-24 md:py-32" aria-labelledby="services-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8">
-                <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-14 md:mb-20 reveal-up">
+                <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-14 md:mb-20" data-reveal-group>
                     <div class="lg:col-span-7">
                         <p class="eyebrow mb-5">Services</p>
-                        <h2 id="services-title" class="section-title">A little care,<br><em>made just for you.</em></h2>
+                        <h2 id="services-title" class="section-title">A little care,<br><em class="script">made just for you.</em></h2>
                     </div>
-                    <p class="lede lg:col-span-5 max-w-lg">
-                        From classic nail care to detailed nail art, beauty treatments and self-care, discover the services available at LocalNail Salon.
-                    </p>
+                    <div class="lg:col-span-5 max-w-lg">
+                        <p class="lede">
+                            From classic nail care to detailed nail art, beauty treatments and self-care, discover the services available at LocalNail Salon.
+                        </p>
+                        <p class="eyebrow mt-5">Select a service to see its price</p>
+                    </div>
                 </div>
                 <div id="servicesList" class="grid md:grid-cols-2 gap-x-16 xl:gap-x-24 gap-y-16"></div>
             </div>
@@ -527,34 +677,30 @@
         <!-- Our Work -->
         <section id="work" class="py-24 md:py-32 bg-[var(--cream-soft)]" aria-labelledby="work-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8">
-                <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-10 md:mb-14 reveal-up">
+                <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-10 md:mb-14" data-reveal-group>
                     <div class="lg:col-span-7">
-                        <p class="eyebrow mb-5">Our Work</p>
-                        <h2 id="work-title" class="section-title">A closer look<br>at the <em>details.</em></h2>
+                        <p class="eyebrow mb-5">Styles</p>
+                        <h2 id="work-title" class="section-title">A closer look<br><em class="script">at the details.</em></h2>
                     </div>
-                    <p class="lede lg:col-span-5 max-w-lg">Explore some of the styles and finishes created at LocalNail Salon.</p>
+                    <div class="lg:col-span-5 max-w-lg">
+                        <p class="lede">Styles our team can create for you — from long extensions to chrome, 3D detail and hand-painted art. Bring a look you love, or ask us to design one.</p>
+                        <p class="text-sm text-[var(--muted)] mt-4 italic">Style references, not photos taken in the salon.</p>
+                    </div>
                 </div>
-                <div class="flex gap-2 overflow-x-auto pb-2 mb-8 md:mb-12 -mx-5 px-5 md:mx-0 md:px-0" role="group" aria-label="Filter our work">
-                    <button type="button" class="filter-btn" data-filter="all" aria-pressed="true">All</button>
-                    <button type="button" class="filter-btn" data-filter="classic" aria-pressed="false">Classic</button>
-                    <button type="button" class="filter-btn" data-filter="gel" aria-pressed="false">Gel</button>
-                    <button type="button" class="filter-btn" data-filter="nail-art" aria-pressed="false">Nail Art</button>
-                    <button type="button" class="filter-btn" data-filter="extensions" aria-pressed="false">Extensions</button>
-                </div>
-                <div id="gallery" class="gallery" aria-live="polite"></div>
+                <div id="gallery" class="gallery"></div>
             </div>
         </section>
 
         <!-- About -->
         <section id="about" class="py-24 md:py-32" aria-labelledby="about-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
-                <div class="reveal-up photo aspect-[4/5] max-w-[560px] w-full mx-auto lg:mx-0">
-                    <img src="images/salon-interior.webp" width="720" height="900" loading="lazy" decoding="async"
-                         alt="Inside LocalNail Salon through the glass front: nail stations, colour swatches and warm lighting">
+                <div class="photo aspect-[4/5] max-w-[560px] w-full mx-auto lg:mx-0" data-reveal="image" data-parallax="0.06">
+                    <img id="aboutImg" src="images/salon/about-interior.webp" width="1000" height="1250" loading="lazy" decoding="async"
+                         alt="Inside LocalNail Salon: a client relaxing in the pedicure chair while a technician works, below the LocalNail Salon wall sign">
                 </div>
-                <div class="reveal-up">
+                <div data-reveal-group>
                     <p class="eyebrow mb-5">About LocalNail</p>
-                    <h2 id="about-title" class="section-title mb-8">Your time.<br>Your nails.<br><em>Your moment.</em></h2>
+                    <h2 id="about-title" class="section-title mb-8">Your time.<br>Your nails.<br><em class="script">Your moment.</em></h2>
                     <p class="lede max-w-lg mb-10">
                         LocalNail Salon is a place for beautiful details, thoughtful care, and a little time for yourself. From clean, classic finishes to expressive nail art and beauty services, every visit is designed around your style.
                     </p>
@@ -567,11 +713,11 @@
         <section id="experience" class="pb-24 md:pb-32" aria-labelledby="experience-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8">
                 <div class="border-t border-[var(--border)] pt-20 md:pt-28 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-                    <div class="lg:col-span-7 reveal-up photo aspect-[3/2]">
-                        <img src="images/salon-entrance-wide.webp" width="947" height="631" loading="lazy" decoding="async"
-                             alt="The LocalNail Salon entrance with the nail colour display, salon chairs and the price board">
+                    <div class="lg:col-span-7 photo aspect-[3/2]" data-reveal="image" data-parallax="0.05">
+                        <img id="experienceImg" src="images/salon/craft-close.webp" width="1200" height="800" loading="lazy" decoding="async"
+                             alt="A LocalNail technician shaping a client's nails with an e-file, with nail art decals laid out on the table">
                     </div>
-                    <div class="lg:col-span-5 reveal-up">
+                    <div class="lg:col-span-5" data-reveal-group>
                         <p class="eyebrow mb-5">The Salon</p>
                         <h2 id="experience-title" class="section-title mb-10">More than<br>a <em>manicure.</em></h2>
                         <ol class="space-y-7">
@@ -590,12 +736,14 @@
                         </ol>
                     </div>
                 </div>
+                <p class="eyebrow mt-16 md:mt-24 mb-6" data-reveal="soft">Inside the Salon</p>
+                <ul class="salon-strip" id="salonStrip" data-reveal-group data-reveal-kind="image" data-reveal-sync></ul>
             </div>
         </section>
 
         <!-- Why LocalNail -->
         <section class="py-24 md:py-32 bg-[var(--cream-soft)] text-center" aria-labelledby="why-title">
-            <div class="max-w-6xl mx-auto px-5 md:px-8 reveal-up">
+            <div class="max-w-6xl mx-auto px-5 md:px-8" data-reveal-group>
                 <p class="eyebrow mb-5">Why LocalNail</p>
                 <h2 id="why-title" class="section-title mb-14 md:mb-20">Beauty in the <em>details.</em></h2>
                 <ul class="grid sm:grid-cols-3 border-y border-[var(--border)]">
@@ -609,11 +757,11 @@
         <!-- Services & pricing -->
         <section id="pricing" class="py-24 md:py-32" aria-labelledby="pricing-title">
             <div class="max-w-6xl mx-auto px-5 md:px-8">
-                <div class="text-center mb-12 md:mb-16 reveal-up">
+                <div class="text-center mb-12 md:mb-16" data-reveal-group>
                     <p class="eyebrow mb-5">Menu</p>
                     <h2 id="pricing-title" class="section-title">Services &amp; <em>Pricing</em></h2>
                 </div>
-                <div class="menu-card px-6 py-12 sm:px-12 md:px-16 md:py-16 reveal-up">
+                <div class="menu-card px-6 py-12 sm:px-12 md:px-16 md:py-16" data-reveal="scale">
                     <div id="pricingList" class="grid md:grid-cols-2 gap-x-14 lg:gap-x-20 gap-y-12"></div>
                     <p class="mt-12 text-center text-sm text-[var(--muted)]">Waxing is priced by service area. Nail art is priced per nail.</p>
                     <div class="mt-8 text-center">
@@ -626,7 +774,7 @@
         <!-- Testimonials -->
         <section class="py-24 md:py-32 bg-[var(--cream-soft)]" aria-labelledby="reviews-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8">
-                <div class="text-center mb-14 md:mb-20 reveal-up">
+                <div class="text-center mb-14 md:mb-20" data-reveal-group>
                     <p class="eyebrow mb-5">Kind Words</p>
                     <h2 id="reviews-title" class="section-title">Good nails.<br><em>Good feelings.</em></h2>
                 </div>
@@ -637,9 +785,9 @@
         <!-- Visit / contact -->
         <section id="contact" class="py-24 md:py-32" aria-labelledby="contact-title">
             <div class="max-w-7xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
-                <div class="reveal-up">
+                <div data-reveal-group>
                     <p class="eyebrow mb-5">Contact</p>
-                    <h2 id="contact-title" class="section-title mb-10">Visit <em>LocalNail</em></h2>
+                    <h2 id="contact-title" class="section-title mb-10">Visit <em class="script">LocalNail</em></h2>
                     <dl class="divide-y divide-[var(--border)] border-y border-[var(--border)] mb-10">
                         <div class="grid grid-cols-[130px_1fr] gap-4 py-5">
                             <dt class="eyebrow !text-[var(--muted)] pt-1">Address</dt>
@@ -656,9 +804,9 @@
                         <div class="grid grid-cols-[130px_1fr] gap-4 py-5">
                             <dt class="eyebrow !text-[var(--muted)] pt-1">Social</dt>
                             <dd class="flex flex-wrap gap-x-6 gap-y-2">
-                                <a class="text-[var(--ink)] underline underline-offset-4 decoration-[var(--gold)] hover:text-[var(--gold-text)]" data-social="instagram" href="#">Instagram</a>
-                                <a class="text-[var(--ink)] underline underline-offset-4 decoration-[var(--gold)] hover:text-[var(--gold-text)]" data-social="facebook" href="#">Facebook</a>
-                                <a class="text-[var(--ink)] underline underline-offset-4 decoration-[var(--gold)] hover:text-[var(--gold-text)]" data-social="telegram" href="#">Telegram</a>
+                                <a class="social-link text-[var(--ink)]" data-social="instagram" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.41.68.81.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.13 1.38C1.35 2.68.93 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13.67.67 1.34 1.08 2.13 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.71 2.13-1.38.67-.67 1.08-1.34 1.38-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.71-1.46-1.38-2.13C21.32 1.35 20.65.93 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path d="M12 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.41" cy="5.59" r="1.44"/></svg><span>Instagram</span></a>
+                                <a class="social-link text-[var(--ink)]" data-social="facebook" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg><span>Facebook</span></a>
+                                <a class="social-link text-[var(--ink)]" data-social="tiktok" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.6-1.62-.94-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg><span>TikTok</span></a>
                             </dd>
                         </div>
                     </dl>
@@ -667,9 +815,9 @@
                         <a id="contactBtn" href="#contact" class="btn btn-secondary">Contact Us</a>
                     </div>
                 </div>
-                <div class="reveal-up">
-                    <div id="mapArea" class="photo aspect-[4/3] border border-[var(--border)]">
-                        <img src="images/salon-sign.webp" width="800" height="600" loading="lazy" decoding="async"
+                <div data-reveal="image" data-parallax="0.04">
+                    <div id="mapArea" class="photo aspect-[16/10] border border-[var(--border)]">
+                        <img id="signImg" src="images/salon-sign.webp" width="990" height="620" loading="lazy" decoding="async"
                              alt="The lit arched LocalNail Salon sign above the salon entrance">
                     </div>
                     <p id="mapNote" class="mt-4 text-sm text-[var(--muted)]">Look for the lit arched LocalNail Salon sign.</p>
@@ -679,7 +827,7 @@
 
         <!-- Book -->
         <section id="book" class="py-24 md:py-32 bg-[var(--ink)] text-center" aria-labelledby="book-title">
-            <div class="max-w-3xl mx-auto px-5 md:px-8 reveal-up">
+            <div class="max-w-3xl mx-auto px-5 md:px-8" data-reveal-group>
                 <p class="eyebrow !text-[var(--gold-soft)] mb-6">Book Appointment</p>
                 <h2 id="book-title" class="font-serif text-white text-[2.5rem] sm:text-5xl md:text-6xl leading-[1.08] mb-6">Ready for your<br><em class="italic text-[var(--gold-soft)]">next set?</em></h2>
                 <p class="text-white/70 text-lg leading-relaxed mb-10 max-w-xl mx-auto">Choose your service, pick a time, and let us take care of the details.</p>
@@ -691,7 +839,7 @@
     <!-- Footer -->
     <footer class="bg-[var(--cream-soft)] border-t border-[var(--border)]">
         <div class="max-w-7xl mx-auto px-5 md:px-8 pt-16 pb-10">
-            <div class="grid md:grid-cols-12 gap-10 pb-12 border-b border-[var(--border)]">
+            <div class="grid md:grid-cols-12 gap-10 pb-12 border-b border-[var(--border)]" data-reveal-group>
                 <div class="md:col-span-5">
                     <p class="logo text-3xl mb-3">LocalNail<span>Salon</span></p>
                     <p class="eyebrow !text-[var(--muted)]">Nails &bull; Beauty &bull; Self Care</p>
@@ -700,7 +848,7 @@
                     <p class="eyebrow mb-5">Explore</p>
                     <ul class="grid grid-cols-2 gap-y-3 text-[var(--ink-soft)]">
                         <li><a class="hover:text-[var(--gold-text)]" href="#services">Services</a></li>
-                        <li><a class="hover:text-[var(--gold-text)]" href="#work">Our Work</a></li>
+                        <li><a class="hover:text-[var(--gold-text)]" href="#work">Styles</a></li>
                         <li><a class="hover:text-[var(--gold-text)]" href="#about">About</a></li>
                         <li><a class="hover:text-[var(--gold-text)]" href="#pricing">Pricing</a></li>
                         <li><a class="hover:text-[var(--gold-text)]" href="#contact">Contact</a></li>
@@ -709,9 +857,9 @@
                 <div class="md:col-span-3">
                     <p class="eyebrow mb-5">Follow</p>
                     <ul class="space-y-3 text-[var(--ink-soft)]">
-                        <li><a class="hover:text-[var(--gold-text)]" data-social="instagram" href="#">Instagram</a></li>
-                        <li><a class="hover:text-[var(--gold-text)]" data-social="facebook" href="#">Facebook</a></li>
-                        <li><a class="hover:text-[var(--gold-text)]" data-social="telegram" href="#">Telegram</a></li>
+                        <li><a class="social-link" data-social="instagram" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.41.68.81.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.13 1.38C1.35 2.68.93 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13.67.67 1.34 1.08 2.13 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.71 2.13-1.38.67-.67 1.08-1.34 1.38-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.71-1.46-1.38-2.13C21.32 1.35 20.65.93 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path d="M12 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.41" cy="5.59" r="1.44"/></svg><span>Instagram</span></a></li>
+                        <li><a class="social-link" data-social="facebook" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg><span>Facebook</span></a></li>
+                        <li><a class="social-link" data-social="tiktok" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.6-1.62-.94-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg><span>TikTok</span></a></li>
                     </ul>
                 </div>
             </div>
@@ -730,7 +878,7 @@
     <script>
     (function () {
         'use strict';
-        var DATA = window.SALON;
+        var DATA = window.SALON;      // fallback copy shipped with the page
         var SITE = DATA.site;
 
         function esc(s) {
@@ -740,120 +888,200 @@
         }
         function pad(n) { return (n < 10 ? '0' : '') + n; }
 
-        /* ---- Services (with descriptions) ---- */
-        document.getElementById('servicesList').innerHTML = DATA.services.map(function (cat, i) {
-            return '<article class="reveal-up" aria-labelledby="svc-' + cat.id + '">' +
-                '<div class="flex items-baseline gap-5 border-t border-[var(--ink)] pt-6 mb-3">' +
-                    '<span class="font-serif text-[var(--gold-text)] text-lg">' + pad(i + 1) + '</span>' +
-                    '<h3 id="svc-' + cat.id + '" class="font-serif text-3xl md:text-[2.1rem] text-[var(--ink)]">' + esc(cat.title) + '</h3>' +
-                '</div>' +
-                '<p class="text-[var(--muted)] mb-4 pl-[2.6rem]">' + esc(cat.intro) + '</p>' +
-                '<ul class="pl-[2.6rem]">' + cat.items.map(function (s) {
-                    return '<li class="svc-row"><div class="flex justify-between items-baseline gap-6">' +
-                        '<span class="svc-name">' + esc(s.name) + '</span>' +
-                        '<span class="svc-price">' + esc(s.price) + '</span></div>' +
-                        '<p class="svc-desc">' + esc(s.desc) + '</p></li>';
-                }).join('') + '</ul></article>';
-        }).join('');
+        /* ---- Everything the salon can edit renders from one content object ---- */
+        function renderContent() {
+            SITE = DATA.site;
+            renderImages();
 
-        /* ---- Pricing (printed-menu layout, same data) ---- */
-        document.getElementById('pricingList').innerHTML = DATA.services.map(function (cat) {
-            return '<div><h3 class="menu-cat-title">' + esc(cat.title) + '</h3><ul>' +
-                cat.items.map(function (s) {
-                    return '<li class="menu-row"><span class="name">' + esc(s.name) + '</span>' +
-                        '<span class="leader" aria-hidden="true"></span>' +
-                        '<span class="price">' + esc(s.price) + '</span></li>';
-                }).join('') + '</ul></div>';
-        }).join('');
-
-        /* ---- Gallery ---- */
-        var CAT_LABEL = { classic: 'Classic', gel: 'Gel', 'nail-art': 'Nail Art', extensions: 'Extensions' };
-        var SHAPE = { tall: [800, 1000], square: [800, 800], wide: [800, 600] };
-        function imgAttrs(item) {
-            var wh = SHAPE[item.shape] || SHAPE.square;
-            if (/images\.unsplash\.com/.test(item.src)) {
-                var u = function (w) {
-                    return item.src + '?w=' + w + '&h=' + Math.round(w * wh[1] / wh[0]) + '&fit=crop&auto=format&q=75 ' + w + 'w';
-                };
-                return 'src="' + esc(u(800).split(' ')[0]) + '" srcset="' + esc(u(400) + ', ' + u(800)) + '"';
+            // one id per service, shared by the Services list and the price menu
+            function priceId(cat, item) {
+                return 'price-' + cat.id + '-' + item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             }
-            return 'src="' + esc(item.src) + '"';
-        }
-        var gallery = document.getElementById('gallery');
-        gallery.innerHTML = DATA.gallery.map(function (item) {
-            var wh = SHAPE[item.shape] || SHAPE.square;
-            return '<figure class="g-item reveal-up is-' + esc(item.shape || 'square') + '" data-category="' + esc(item.category) + '">' +
-                '<div class="photo"><img ' + imgAttrs(item) + ' sizes="(min-width: 768px) 30vw, 46vw" width="' + wh[0] + '" height="' + wh[1] +
-                '" loading="lazy" decoding="async" alt="' + esc(item.alt) + '"></div>' +
-                '<figcaption>' + esc(CAT_LABEL[item.category] || '') + '</figcaption></figure>';
-        }).join('');
-        gallery.querySelectorAll('img').forEach(function (img) {
-            img.addEventListener('error', function () {
-                var ph = document.createElement('div');
-                ph.className = 'g-placeholder';
-                ph.textContent = 'Photo coming soon';
-                img.replaceWith(ph);
-            }, { once: true });
-        });
-        var filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var f = btn.dataset.filter;
-                filterBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
-                gallery.querySelectorAll('.g-item').forEach(function (el) {
-                    var show = f === 'all' || el.dataset.category === f;
-                    el.hidden = !show;
-                    el.classList.remove('fade-in');
-                    if (show) { void el.offsetWidth; el.classList.add('fade-in', 'visible'); }
+
+            /* ---- Services: what we offer. Prices live in the menu below. ---- */
+            var ARROW = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+            document.getElementById('servicesList').innerHTML = DATA.services.map(function (cat, i) {
+                return '<article data-reveal="soft" aria-labelledby="svc-' + cat.id + '">' +
+                    '<div class="flex items-baseline gap-5 border-t border-[var(--ink)] pt-6 mb-3">' +
+                        '<span class="font-serif text-[var(--gold-text)] text-lg">' + pad(i + 1) + '</span>' +
+                        '<h3 id="svc-' + cat.id + '" class="font-serif text-3xl md:text-[2.1rem] text-[var(--ink)]">' + esc(cat.title) + '</h3>' +
+                    '</div>' +
+                    '<p class="text-[var(--muted)] mb-4 pl-[2.6rem]">' + esc(cat.intro) + '</p>' +
+                    '<ul class="pl-[2.6rem]">' + cat.items.map(function (s) {
+                        return '<li class="svc-row">' +
+                            '<a class="svc-link" href="#' + priceId(cat, s) + '" aria-label="' + esc(s.name) + ' — see price">' +
+                                '<span class="svc-name">' + esc(s.name) + '</span>' +
+                                '<span class="svc-cta">See price' + ARROW + '</span>' +
+                                '<p class="svc-desc">' + esc(s.desc) + '</p>' +
+                            '</a></li>';
+                    }).join('') + '</ul></article>';
+            }).join('');
+
+            /* ---- Pricing (printed-menu layout, same data) ---- */
+            document.getElementById('pricingList').innerHTML = DATA.services.map(function (cat) {
+                return '<div><h3 class="menu-cat-title">' + esc(cat.title) + '</h3><ul>' +
+                    cat.items.map(function (s) {
+                        return '<li class="menu-row" id="' + priceId(cat, s) + '" tabindex="-1"><span class="name">' + esc(s.name) + '</span>' +
+                            '<span class="leader" aria-hidden="true"></span>' +
+                            '<span class="price">' + esc(s.price) + '</span></li>';
+                    }).join('') + '</ul></div>';
+            }).join('');
+
+            /* ---- Tapping a service jumps to its price and marks it ---- */
+            var slowMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var markTimer = null;
+            function showPrice(row) {
+                document.querySelectorAll('.menu-row.is-highlighted').forEach(function (el) {
+                    el.classList.remove('is-highlighted');
                 });
+                row.scrollIntoView({ behavior: slowMotion ? 'auto' : 'smooth', block: 'center' });
+                row.classList.add('is-highlighted');
+                row.focus({ preventScroll: true });
+                clearTimeout(markTimer);
+                markTimer = setTimeout(function () { row.classList.remove('is-highlighted'); }, 4500);
+            }
+            document.getElementById('servicesList').addEventListener('click', function (e) {
+                var link = e.target.closest('.svc-link');
+                if (!link) return;
+                var row = document.getElementById(link.getAttribute('href').slice(1));
+                if (!row) return;
+                e.preventDefault();
+                history.replaceState(null, '', link.getAttribute('href'));
+                showPrice(row);
             });
-        });
+            // opening a shared link to one price marks it too
+            if (location.hash.indexOf('#price-') === 0) {
+                var deepRow = document.getElementById(location.hash.slice(1));
+                if (deepRow) setTimeout(function () { showPrice(deepRow); }, 400);
+            }
 
-        /* ---- Testimonials ---- */
-        document.getElementById('testimonials').innerHTML = DATA.testimonials.map(function (t) {
-            return '<figure class="reveal-up border-t border-[var(--ink)] pt-8">' +
-                '<span class="block font-serif text-5xl leading-none text-[var(--gold)] mb-4" aria-hidden="true">&ldquo;</span>' +
-                '<blockquote class="font-serif italic text-xl leading-relaxed text-[var(--ink)] mb-6">' + esc(t.quote) + '</blockquote>' +
-                '<figcaption class="eyebrow !text-[var(--muted)]">' + esc(t.label) + '</figcaption></figure>';
-        }).join('');
+            /* ---- Gallery ---- */
+            var CAT_LABEL = { extensions: 'Extensions', chrome: 'Chrome & 3D', 'nail-art': 'Nail Art' };
+            var SHAPE = { tall: [800, 1000], square: [800, 800], wide: [800, 600] };
+            function imgAttrs(item) {
+                var wh = SHAPE[item.shape] || SHAPE.square;
+                if (/images\.unsplash\.com/.test(item.src)) {
+                    var u = function (w) {
+                        return item.src + '?w=' + w + '&h=' + Math.round(w * wh[1] / wh[0]) + '&fit=crop&auto=format&q=75 ' + w + 'w';
+                    };
+                    return 'src="' + esc(u(800).split(' ')[0]) + '" srcset="' + esc(u(400) + ', ' + u(800)) + '"';
+                }
+                return 'src="' + esc(item.src) + '"';
+            }
+            var gallery = document.getElementById('gallery');
+            gallery.innerHTML = DATA.gallery.map(function (item) {
+                var wh = SHAPE[item.shape] || SHAPE.square;
+                return '<figure class="g-item is-' + esc(item.shape || 'square') + '" data-reveal="image" data-category="' + esc(item.category) + '">' +
+                    '<div class="photo"><img ' + imgAttrs(item) + ' sizes="(min-width: 768px) 30vw, 46vw" width="' + wh[0] + '" height="' + wh[1] +
+                    '" loading="lazy" decoding="async" alt="' + esc(item.alt) + '"></div>' +
+                    '<figcaption>' + esc(CAT_LABEL[item.category] || '') + '</figcaption></figure>';
+            }).join('');
+            gallery.querySelectorAll('img').forEach(function (img) {
+                img.addEventListener('error', function () {
+                    var ph = document.createElement('div');
+                    ph.className = 'g-placeholder';
+                    ph.textContent = 'Photo coming soon';
+                    img.replaceWith(ph);
+                }, { once: true });
+            });
+            /* ---- Testimonials ---- */
+            document.getElementById('testimonials').innerHTML = DATA.testimonials.map(function (t) {
+                return '<figure class="border-t border-[var(--ink)] pt-8" data-reveal="soft">' +
+                    '<span class="block font-serif text-5xl leading-none text-[var(--gold)] mb-4" aria-hidden="true">&ldquo;</span>' +
+                    '<blockquote class="font-serif italic text-xl leading-relaxed text-[var(--ink)] mb-6">' + esc(t.quote) + '</blockquote>' +
+                    '<figcaption class="eyebrow !text-[var(--muted)]">' + esc(t.label) + '</figcaption></figure>';
+            }).join('');
 
-        /* ---- Salon details, links, booking ---- */
-        ['address', 'phone', 'hours'].forEach(function (k) {
-            document.querySelectorAll('[data-site="' + k + '"]').forEach(function (el) { el.textContent = SITE[k]; });
-        });
-        document.querySelectorAll('[data-social]').forEach(function (a) {
-            var url = SITE.social[a.dataset.social];
-            if (url && url !== '#') { a.href = url; a.target = '_blank'; a.rel = 'noopener'; }
-        });
-        function isSet(v) { return v && v.indexOf('[') !== 0; }
-        if (SITE.directionsUrl) {
+            /* ---- Salon details, links, booking ---- */
+            var phones = [].concat(SITE.phone || []);
+            // 085 883 993 -> +855 85 883 993, so the link works from abroad too
+            function telHref(num) {
+                var digits = String(num).replace(/[^\d]/g, '');
+                var cc = SITE.countryCode || '';
+                return 'tel:' + (cc ? cc + digits.replace(/^0/, '') : digits);
+            }
+            ['address', 'hours'].forEach(function (k) {
+                document.querySelectorAll('[data-site="' + k + '"]').forEach(function (el) { el.textContent = SITE[k]; });
+            });
+            document.querySelectorAll('[data-site="phone"]').forEach(function (el) {
+                el.innerHTML = phones.map(function (num) {
+                    return '<a class="phone-link" href="' + esc(telHref(num)) + '">' + esc(num) + '</a>';
+                }).join('<span class="text-[var(--muted)] mx-2" aria-hidden="true">/</span>');
+            });
+            document.querySelectorAll('[data-social]').forEach(function (a) {
+                var url = SITE.social[a.dataset.social];
+                if (url && url !== '#') { a.href = url; a.target = '_blank'; a.rel = 'noopener'; }
+            });
+            function isSet(v) { return v && String(v).indexOf('[') !== 0; }
+            // an exact Maps link wins; otherwise search Maps for the salon's address
             var dir = document.getElementById('directionsBtn');
-            dir.href = SITE.directionsUrl; dir.target = '_blank'; dir.rel = 'noopener';
+            var directions = SITE.directionsUrl ||
+                (isSet(SITE.address)
+                    ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(SITE.name + ', ' + SITE.address)
+                    : '');
+            if (directions) { dir.href = directions; dir.target = '_blank'; dir.rel = 'noopener'; }
+            if (phones.length && isSet(phones[0])) document.getElementById('contactBtn').href = telHref(phones[0]);
+            if (SITE.mapEmbedUrl) {
+                document.getElementById('mapArea').innerHTML =
+                    '<iframe src="' + esc(SITE.mapEmbedUrl) + '" title="Map to LocalNail Salon" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+                document.getElementById('mapNote').hidden = true;
+            }
+            // "Book" buttons scroll to the booking section; once a booking link is
+            // configured they go straight to it.
+            var bookingBtn = document.getElementById('bookingBtn');
+            if (SITE.bookingUrl) {
+                document.querySelectorAll('.js-book').forEach(function (a) { a.href = SITE.bookingUrl; });
+                bookingBtn.href = SITE.bookingUrl;
+                [bookingBtn].concat([].slice.call(document.querySelectorAll('.js-book'))).forEach(function (a) {
+                    if (/^https?:/.test(SITE.bookingUrl)) { a.target = '_blank'; a.rel = 'noopener'; }
+                });
+            }
+            if (SITE.menuImage) {
+                var dlg = document.getElementById('menuDialog');
+                var btn = document.getElementById('viewMenuBtn');
+                document.getElementById('menuDialogImg').src = SITE.menuImage;
+                btn.hidden = false;
+                btn.addEventListener('click', function () { dlg.showModal(); });
+                dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+            }
+            if (window.__observeReveals) window.__observeReveals(document);
         }
-        if (isSet(SITE.phone)) document.getElementById('contactBtn').href = 'tel:' + SITE.phone.replace(/[^\d+]/g, '');
-        if (SITE.mapEmbedUrl) {
-            document.getElementById('mapArea').innerHTML =
-                '<iframe src="' + esc(SITE.mapEmbedUrl) + '" title="Map to LocalNail Salon" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-            document.getElementById('mapNote').hidden = true;
-        }
-        // "Book" buttons scroll to the booking section; once a booking link is
-        // configured they go straight to it.
-        var bookingBtn = document.getElementById('bookingBtn');
-        if (SITE.bookingUrl) {
-            document.querySelectorAll('.js-book').forEach(function (a) { a.href = SITE.bookingUrl; });
-            bookingBtn.href = SITE.bookingUrl;
-            [bookingBtn].concat([].slice.call(document.querySelectorAll('.js-book'))).forEach(function (a) {
-                if (/^https?:/.test(SITE.bookingUrl)) { a.target = '_blank'; a.rel = 'noopener'; }
+
+        // the four fixed photographs and the "Inside the Salon" row
+        function renderImages() {
+            var IMG = DATA.images || {};
+            function setImg(id, entry, extra) {
+                var el = document.getElementById(id);
+                if (!el || !entry || !entry.src) return;
+                el.src = entry.src;
+                if (entry.alt) el.alt = entry.alt;
+                if (extra) extra(el, entry);
+            }
+            setImg('heroImg', IMG.hero, function (el, entry) {
+                el.srcset = entry.srcSmall ? entry.srcSmall + ' 640w, ' + entry.src + ' 1067w' : '';
             });
+            setImg('aboutImg', IMG.about);
+            setImg('experienceImg', IMG.experience);
+            setImg('signImg', IMG.sign);
+            if (IMG.sign && IMG.sign.caption) document.getElementById('mapNote').textContent = IMG.sign.caption;
+
+            var strip = document.getElementById('salonStrip');
+            if (strip && Array.isArray(IMG.strip)) {
+                strip.innerHTML = IMG.strip.map(function (item) {
+                    return '<li><figure><div class="photo aspect-square">' +
+                        '<img src="' + esc(item.src) + '" width="700" height="700" loading="lazy" decoding="async" alt="' + esc(item.alt || '') + '">' +
+                        '</div><figcaption>' + esc(item.caption || '') + '</figcaption></figure></li>';
+                }).join('');
+            }
         }
-        if (SITE.menuImage) {
-            var dlg = document.getElementById('menuDialog');
-            var btn = document.getElementById('viewMenuBtn');
-            document.getElementById('menuDialogImg').src = SITE.menuImage;
-            btn.hidden = false;
-            btn.addEventListener('click', function () { dlg.showModal(); });
-            dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
-        }
+
+        // Live content first; if the API is unreachable the page still renders
+        // from salon-data.js, so the site never goes blank.
+        fetch('/api/content', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) { if (data && data.site) DATA = data; })
+            .catch(function () { /* keep the bundled copy */ })
+            .then(function () { renderContent(); });
 
         /* ---- Mobile menu ---- */
         var menu = document.getElementById('mobileMenu');
@@ -910,17 +1138,140 @@
             spy.observe(document.getElementById(id));
         });
 
-        /* ---- Scroll reveal ---- */
-        function startReveal() {
-            var io = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+        /* ---- Motion: reveals, stagger, parallax and reading progress ----
+           One IntersectionObserver reveals elements, one rAF loop drives the
+           parallax and the progress bar, and both stop when nothing is in view. */
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        var STAGGER = 90, STAGGER_MAX = 6;
+
+        // Elements inside a group inherit a reveal and a stepped delay, so a
+        // heading, its text and its button arrive one after another.
+        function prepareGroups(root) {
+            (root || document).querySelectorAll('[data-reveal-group]').forEach(function (group) {
+                var kind = group.dataset.revealKind || '';
+                [].slice.call(group.children).forEach(function (child, i) {
+                    if (!child.hasAttribute('data-reveal')) child.setAttribute('data-reveal', kind);
+                    child.style.setProperty('--rev-delay', (Math.min(i, STAGGER_MAX) * STAGGER) + 'ms');
                 });
-            }, { threshold: 0.12 });
-            document.querySelectorAll('.reveal-up').forEach(function (el) { io.observe(el); });
+            });
         }
-        if (window.__introDone) startReveal();
-        else window.addEventListener('introdone', startReveal, { once: true });
+
+        var revealIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                var el = entry.target;
+                el.classList.add('is-in');
+                revealIO.unobserve(el);
+                // hand the element over to parallax once its entrance has played
+                if (el.classList.contains('has-parallax')) {
+                    setTimeout(function () { el.classList.add('parallax-on'); drawParallax(); }, 1000);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+        // A synced group reveals all of its children at once (with their stagger)
+        // when the group itself enters — used where a scroll container clips
+        // children out of the viewport, e.g. the swipeable salon row.
+        var syncIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                [].slice.call(entry.target.children).forEach(function (child) {
+                    child.classList.add('is-in');
+                    revealIO.unobserve(child);
+                });
+                syncIO.unobserve(entry.target);
+            });
+        }, { threshold: 0.1 });
+
+        function observeReveals(root) {
+            prepareGroups(root);
+            (root || document).querySelectorAll('[data-reveal-sync]').forEach(function (g) { syncIO.observe(g); });
+            (root || document).querySelectorAll('[data-reveal]:not(.is-in)').forEach(function (el) {
+                if (el.parentElement && el.parentElement.hasAttribute('data-reveal-sync')) return;
+                revealIO.observe(el);
+            });
+        }
+        window.__observeReveals = observeReveals;   // rendered content re-registers itself
+
+        /* scrolling direction feeds the reveal offset, so content entering from
+           the top while scrolling up settles downward instead of jumping */
+        var lastY = window.scrollY, dirTick = false;
+        function onScroll() {
+            if (!dirTick) { dirTick = true; requestAnimationFrame(updateScroll); }
+        }
+        function updateScroll() {
+            dirTick = false;
+            var y = window.scrollY;
+            if (Math.abs(y - lastY) > 6) {
+                document.documentElement.style.setProperty('--scroll-dir', y > lastY ? '1' : '-1');
+                lastY = y;
+            }
+            var doc = document.documentElement;
+            var max = doc.scrollHeight - window.innerHeight;
+            progressEl.style.setProperty('--progress', max > 0 ? Math.min(y / max, 1).toFixed(4) : 0);
+            if (parallaxActive.size) drawParallax();
+        }
+        var progressEl = document.getElementById('scrollProgress');
+
+        /* Parallax: a few large photographs drift against the scroll. Only
+           elements currently on screen are touched, and only via transform. */
+        var parallaxItems = [].slice.call(document.querySelectorAll('[data-parallax]'));
+        var parallaxActive = new Set();
+        var parallaxIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    parallaxActive.add(entry.target);
+                    entry.target.style.willChange = 'transform';
+                } else {
+                    parallaxActive.delete(entry.target);
+                    entry.target.style.willChange = '';
+                }
+            });
+            if (parallaxActive.size) drawParallax();
+        }, { rootMargin: '10% 0px' });
+
+        function drawParallax() {
+            var vh = window.innerHeight;
+            parallaxActive.forEach(function (el) {
+                var rect = el.getBoundingClientRect();
+                var progress = (rect.top + rect.height / 2 - vh / 2) / vh;   // -1 … 1
+                var shift = -progress * parseFloat(el.dataset.parallax) * vh;
+                el.style.setProperty('--parallax-y', shift.toFixed(2) + 'px');
+            });
+        }
+
+        // Parallax is for pointer-sized screens only, and is re-evaluated on
+        // resize so rotating a tablet or resizing a window keeps it correct.
+        var parallaxOn = false;
+        function syncParallax() {
+            var want = !reduceMotion.matches && window.innerWidth >= 768;
+            if (want === parallaxOn) return;
+            parallaxOn = want;
+            parallaxItems.forEach(function (el) {
+                if (want) {
+                    el.classList.add('has-parallax');
+                    parallaxIO.observe(el);
+                    if (el.classList.contains('is-in')) el.classList.add('parallax-on');
+                } else {
+                    parallaxIO.unobserve(el);
+                    parallaxActive.delete(el);
+                    el.classList.remove('has-parallax', 'parallax-on');
+                    el.style.willChange = '';
+                }
+            });
+            if (want) drawParallax();
+        }
+
+        function startMotion() {
+            observeReveals(document);
+            syncParallax();
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', function () { syncParallax(); drawParallax(); }, { passive: true });
+            reduceMotion.addEventListener('change', syncParallax);
+            updateScroll();
+        }
+        if (window.__introDone) startMotion();
+        else window.addEventListener('introdone', startMotion, { once: true });
     })();
     </script>
 </body>
