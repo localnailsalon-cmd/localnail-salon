@@ -5,16 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocalNail Salon — Nails, Beauty &amp; Self Care</title>
     <meta name="description" content="LocalNail Salon offers nail care, beauty and self-care services including manicure, pedicure, gel, nail art, hair, waxing and more.">
+    <link rel="canonical" href="https://localnailsalon.tech/">
     <meta property="og:title" content="LocalNail Salon — Nails, Beauty & Self Care">
     <meta property="og:description" content="Nail care, beauty and self-care services including manicure, pedicure, gel, nail art, hair and waxing.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="images/salon-storefront.webp">
+    <meta property="og:site_name" content="LocalNail Salon">
+    <meta property="og:url" content="https://localnailsalon.tech/">
+    <!-- absolute, so Facebook and Telegram can fetch the preview image -->
+    <meta property="og:image" content="https://localnailsalon.tech/images/salon-storefront.webp">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="theme-color" content="#F8F9FA">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="images/salon-storefront.webp" imagesrcset="images/salon-storefront-640.webp 640w, images/salon-storefront.webp 1067w" imagesizes="(min-width: 768px) 46vw, 92vw">
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Local-business details for Google. Every value here is the salon's own:
+         the address and phone numbers the owner gave, and the coordinates from
+         the salon's Google Maps listing. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NailSalon",
+      "name": "LocalNail Salon",
+      "description": "Nail care, beauty and self-care services including manicure, pedicure, gel, nail art, hair and waxing.",
+      "url": "https://localnailsalon.tech/",
+      "image": "https://localnailsalon.tech/images/salon-storefront.webp",
+      "telephone": ["+85585883993", "+85570291777"],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "26 2 Thnou St",
+        "addressLocality": "Krong Siem Reap",
+        "addressCountry": "KH"
+      },
+      "geo": { "@type": "GeoCoordinates", "latitude": 13.3563511, "longitude": 103.8544166 },
+      "openingHoursSpecification": [{
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "10:00",
+        "closes": "22:00"
+      }],
+      "hasMap": "https://www.google.com/maps/place/Local+nail+salon/@13.3563511,103.8544166,16z/data=!4m14!1m7!3m6!1s0x3110170076052649:0x9654c4120fef00ef!2sLocal+nail+salon!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1!3m5!1s0x3110170076052649:0x9654c4120fef00ef!8m2!3d13.3563511!4d103.8544166!16s%2Fg%2F11zf8rzlp1",
+      "sameAs": [
+        "https://www.instagram.com/localnailsalon",
+        "https://www.facebook.com/share/1FAqe3r1hr/",
+        "https://www.tiktok.com/@localnailsalon4"
+      ]
+    }
+    </script>
 
     <style>
         /* White / silver / chrome — matched to the salon's nail work */

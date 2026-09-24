@@ -84,7 +84,9 @@ const MIME = {
   '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
-  '.webp': 'image/webp'
+  '.webp': 'image/webp',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8'
 };
 const UPLOAD_TYPES = { 'image/webp': '.webp', 'image/jpeg': '.jpg', 'image/png': '.png' };
 
@@ -261,7 +263,7 @@ const server = http.createServer((req, res) => {
   // Serve only what the website itself needs. Everything else — the server
   // source, package files, data/ and .git — stays private.
   const rel = urlPath.replace(/^\/+/, '');
-  const PUBLIC_FILES = ['index.html', 'admin.html', 'salon-data.js', 'favicon.ico', 'robots.txt'];
+  const PUBLIC_FILES = ['index.html', 'admin.html', 'salon-data.js', 'favicon.ico', 'robots.txt', 'sitemap.xml'];
   const isPublic = PUBLIC_FILES.includes(rel) || /^images\/[\w./-]+$/.test(rel);
   const safePath = path.normalize(path.join(ROOT, rel));
   if (!isPublic || !safePath.startsWith(ROOT) || safePath.startsWith(DATA_DIR) || rel.includes('..')) {
