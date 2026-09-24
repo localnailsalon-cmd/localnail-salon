@@ -5,6 +5,7 @@ node_modules/
 .claude/
 
 # runtime secrets and live data written by the running server
+data/.env
 data/.session-secret
 data/.dev-password
 data/*.bak
@@ -13,3 +14,7 @@ data/*.tmp
 # photos uploaded through the staff area live on the server, not in git
 images/uploads/*
 !images/uploads/.gitkeep
+data/.admin-password
+data/.spaces-key.json
+data/.spaces-key.err
+data/.session-secret-live

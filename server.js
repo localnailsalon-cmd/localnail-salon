@@ -7,13 +7,29 @@
 //   PUT  /api/content        save content        (staff only)
 //   POST /api/upload         { name, dataUrl }   (staff only) -> { src }
 //
-// Content lives in data/content.json; uploads land in images/uploads/.
-// Set ADMIN_PASSWORD (and keep data/ on a persistent disk) in production.
+// Content and uploads go through storage.js: DigitalOcean Spaces when the
+// SPACES_* variables are set, otherwise the local data/ and images/uploads/
+// folders. Set ADMIN_PASSWORD (and SESSION_SECRET) in production.
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+// Local development can keep its settings in data/.env (never committed).
+// In production App Platform supplies the same names as real env variables.
+(function loadLocalEnv() {
+  try {
+    const text = fs.readFileSync(path.join(__dirname, 'data', '.env'), 'utf8');
+    text.split(/\r?\n/).forEach(function (line) {
+      const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = match[2].replace(/^["']|["']$/g, '');
+      }
+    });
+  } catch (e) { /* no local env file — fine */ }
+})();
+
+const storage = require('./storage');
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -26,8 +42,10 @@ const SESSION_HOURS = 12;
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+try {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+} catch (e) { /* read-only container: Spaces holds everything that matters */ }
 
 // The password comes from the environment. Without it we generate a random one
 // and keep it in data/ — never a fixed default, because this source is public.
@@ -45,12 +63,15 @@ if (!ADMIN_PASSWORD) {
 }
 
 // A secret that survives restarts, so staff stay signed in across deploys.
-let SECRET;
-try {
-  SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim();
-} catch (e) {
-  SECRET = crypto.randomBytes(32).toString('hex');
-  fs.writeFileSync(SECRET_FILE, SECRET, { mode: 0o600 });
+// On App Platform the disk is wiped each deploy, so set SESSION_SECRET there.
+let SECRET = process.env.SESSION_SECRET;
+if (!SECRET) {
+  try {
+    SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim();
+  } catch (e) {
+    SECRET = crypto.randomBytes(32).toString('hex');
+    try { fs.writeFileSync(SECRET_FILE, SECRET, { mode: 0o600 }); } catch (err) {}
+  }
 }
 
 const MIME = {
@@ -129,19 +150,6 @@ function readBody(req, limit, cb) {
   req.on('error', (err) => cb(err));
 }
 
-function readContent() {
-  return JSON.parse(fs.readFileSync(CONTENT_FILE, 'utf8'));
-}
-
-// Write via a temp file so a crash mid-save can never leave broken JSON,
-// and keep the previous version as a one-step undo.
-function writeContent(content) {
-  const text = JSON.stringify(content, null, 2);
-  const tmp = CONTENT_FILE + '.tmp';
-  try { fs.copyFileSync(CONTENT_FILE, CONTENT_FILE + '.bak'); } catch (e) {}
-  fs.writeFileSync(tmp, text);
-  fs.renameSync(tmp, CONTENT_FILE);
-}
 
 /* ---------------- api ---------------- */
 
@@ -149,8 +157,12 @@ function handleApi(req, res, urlPath) {
   const ip = req.socket.remoteAddress || 'unknown';
 
   if (urlPath === '/api/content' && req.method === 'GET') {
-    try { sendJson(res, 200, readContent()); }
-    catch (err) { sendJson(res, 500, { error: 'content unavailable' }); }
+    storage.readContent()
+      .then(function (content) { sendJson(res, 200, content); })
+      .catch(function (err) {
+        console.error('content read failed:', err.message);
+        sendJson(res, 500, { error: 'content unavailable' });
+      });
     return true;
   }
 
@@ -197,8 +209,12 @@ function handleApi(req, res, urlPath) {
       if (!body || !body.site || !Array.isArray(body.services)) {
         return sendJson(res, 400, { error: 'Unexpected content shape' });
       }
-      try { writeContent(body); sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() }); }
-      catch (e) { sendJson(res, 500, { error: 'Could not save' }); }
+      storage.writeContent(body)
+        .then(function () { sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() }); })
+        .catch(function (e) {
+          console.error('content save failed:', e.message);
+          sendJson(res, 500, { error: 'Could not save' });
+        });
     });
     return true;
   }
@@ -217,10 +233,12 @@ function handleApi(req, res, urlPath) {
       const base = String((body && body.name) || 'photo').toLowerCase()
         .replace(/\.[a-z0-9]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'photo';
       const file = base + '-' + crypto.randomBytes(4).toString('hex') + ext;
-      try {
-        fs.writeFileSync(path.join(UPLOAD_DIR, file), buffer);
-        sendJson(res, 200, { src: 'images/uploads/' + file });
-      } catch (e) { sendJson(res, 500, { error: 'Could not store the image' }); }
+      storage.putImage(file, buffer, match[1])
+        .then(function (src) { sendJson(res, 200, { src: src }); })
+        .catch(function (e) {
+          console.error('upload failed:', e.message);
+          sendJson(res, 500, { error: 'Could not store the image' });
+        });
     });
     return true;
   }
@@ -268,4 +286,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('LocalNail Salon running on port ' + PORT + '  (admin at /admin)');
+  console.log('Content store: ' + (storage.useSpaces ? 'DigitalOcean Spaces' : 'local disk (data/)'));
 });

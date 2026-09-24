@@ -1,0 +1,58 @@
+# DigitalOcean App Platform spec for the LocalNail Salon website.
+#
+# Create or update the app with:
+#   doctl apps create --spec .do/app.yaml
+#   doctl apps update <app-id> --spec .do/app.yaml
+#
+# The four SECRET values are filled in from the DigitalOcean control panel
+# (App → Settings → App-Level Environment Variables), never committed here.
+
+name: localnail-salon
+region: sgp                       # Singapore — the closest region to Cambodia
+
+services:
+  - name: web
+    github:
+      repo: localnailsalon-cmd/localnail-salon
+      branch: main
+      deploy_on_push: true        # pushing to main redeploys the site
+
+    environment_slug: node-js
+    run_command: npm start
+    instance_size_slug: apps-s-1vcpu-0.5gb    # basic, $5/month
+    instance_count: 1
+    http_port: 8080
+
+    health_check:
+      http_path: /api/content
+      initial_delay_seconds: 10
+      period_seconds: 30
+
+    envs:
+      # Staff password for /admin. Set a long private value.
+      - key: ADMIN_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+        value: CHANGE_ME
+
+      # Keeps staff signed in across deploys. Any long random string.
+      - key: SESSION_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: CHANGE_ME
+
+      # Spaces bucket that stores the salon's content and uploaded photos.
+      - key: SPACES_BUCKET
+        scope: RUN_TIME
+        value: localnail-salon
+      - key: SPACES_REGION
+        scope: RUN_TIME
+        value: sgp1
+      - key: SPACES_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: CHANGE_ME
+      - key: SPACES_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: CHANGE_ME
