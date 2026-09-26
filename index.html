@@ -257,8 +257,8 @@
         .film-shade {
             position: absolute; inset: 0; pointer-events: none;
             background:
-                linear-gradient(180deg, rgba(14, 15, 17, .55) 0%, rgba(14, 15, 17, 0) 22%),
-                linear-gradient(0deg, rgba(14, 15, 17, .92) 0%, rgba(14, 15, 17, .55) 30%, rgba(14, 15, 17, 0) 58%);
+                linear-gradient(180deg, rgba(14, 15, 17, .45) 0%, rgba(14, 15, 17, 0) 18%),
+                linear-gradient(0deg, rgba(14, 15, 17, .85) 0%, rgba(14, 15, 17, .4) 24%, rgba(14, 15, 17, 0) 44%);
         }
         .film-meta {
             position: absolute; top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 16px); left: 20px; right: 20px;
@@ -717,8 +717,8 @@
         <section id="top" class="film" aria-label="Walk into LocalNail Salon">
             <div class="film-stage" id="filmStage">
                 <picture>
-                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="1280" height="720">
-                    <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="540" height="960" fetchpriority="high"
+                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="1600" height="900">
+                    <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="720" height="1280" fetchpriority="high"
                      alt="The LocalNail Salon storefront on Thnou Street, seen from the pavement">
                 </picture>
                 <canvas id="filmCanvas" aria-hidden="true"></canvas>
@@ -1349,7 +1349,7 @@
             // phones get the portrait walk-in, wide screens the landscape one
             var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
             var DIR = WIDE ? 'images/film-wide/' : 'images/film/';
-            var N = WIDE ? 279 : 296;
+            var N = WIDE ? 310 : 329;
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
@@ -1400,14 +1400,14 @@
             var lastDir = 1;
             function manage() {
                 var c = Math.round(cur * (N - 1));
-                var ahead = lastDir > 0 ? 22 : 8, behind = lastDir > 0 ? 8 : 22;
+                var ahead = lastDir > 0 ? 20 : 6, behind = lastDir > 0 ? 6 : 20;
                 bmp.forEach(function (b, i) {
-                    if (i < c - behind - 10 || i > c + ahead + 10) { if (b && b.close) b.close(); bmp.delete(i); }
+                    if (i < c - behind - 6 || i > c + ahead + 6) { if (b && b.close) b.close(); bmp.delete(i); }
                 });
                 if (!window.createImageBitmap) return;
-                for (var d = 0; d <= Math.max(ahead, behind) && decoding < 2; d++) {
+                for (var d = 0; d <= Math.max(ahead, behind) && decoding < 3; d++) {
                     [c + d * lastDir, c - d * lastDir].forEach(function (i) {
-                        if (decoding >= 2 || i < 0 || i >= N || !hiLoaded[i] || bmp.has(i)) return;
+                        if (decoding >= 3 || i < 0 || i >= N || !hiLoaded[i] || bmp.has(i)) return;
                         if (i > c + ahead || i < c - behind) return;
                         decoding++;
                         bmp.set(i, null);
@@ -1423,9 +1423,9 @@
             /* ---- Geometry is measured on resize only, never while scrolling ---- */
             var cw = 0, ch = 0, top = 0, travel = 1;
             function measure() {
-                var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+                var dpr = Math.min(window.devicePixelRatio || 1, 2);
                 var w = Math.round(stage.clientWidth * dpr), h = Math.round(stage.clientHeight * dpr);
-                if (w !== cw || h !== ch) { cw = canvas.width = w; ch = canvas.height = h; dirty = true; }
+                if (w !== cw || h !== ch) { cw = canvas.width = w; ch = canvas.height = h; ctx.imageSmoothingQuality = 'high'; dirty = true; }
                 top = section.getBoundingClientRect().top + window.scrollY;
                 travel = Math.max(section.offsetHeight - stage.offsetHeight, 1);
             }
@@ -1459,13 +1459,12 @@
                 cur += (goal - cur) * (1 - Math.pow(1 - 0.14, dt / 16.7));
                 if (Math.abs(goal - cur) < 0.00015) cur = goal;
 
-                var pos = cur * (N - 1), i = Math.floor(pos), f = pos - i;
+                var i = Math.round(cur * (N - 1));
                 if (i !== lastManaged) { lastManaged = i; manage(); pump(); }
-                if (dirty || Math.abs(pos - shownPos) > 0.01) {
+                if (dirty || i !== shownPos) {
+                    // one crisp frame at a time; no blending, so nothing ever doubles
                     if (drawFrame(i, 1)) {
-                        // the next frame fades in over this one, so motion never steps
-                        if (f > 0.02 && i + 1 < N) drawFrame(i + 1, f);
-                        shownPos = pos; dirty = false;
+                        shownPos = i; dirty = false;
                         if (!section.classList.contains('has-frame')) section.classList.add('has-frame');
                     }
                 }
