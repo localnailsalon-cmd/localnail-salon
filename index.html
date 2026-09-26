@@ -19,7 +19,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="images/film/f001.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
+    <link rel="preload" as="image" href="images/film/lo-0.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
     <link rel="preload" as="image" href="images/film-wide/f001.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
+    <link rel="preload" as="image" href="images/film-wide/lo-0.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Local-business details for Google. Every value here is the salon's own:
@@ -1346,40 +1348,77 @@
             var header = document.getElementById('siteHeader');
             // phones get the portrait walk-in, wide screens the landscape one
             var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
-            var DIR = WIDE ? 'images/film-wide/f' : 'images/film/f';
-            var N = WIDE ? 279 : 296, frames = new Array(N), ready = new Array(N);
+            var DIR = WIDE ? 'images/film-wide/' : 'images/film/';
+            var N = WIDE ? 279 : 296;
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
 
-            /* ---- Loading: every 8th frame first so the whole walk is there
-               early, then the gaps. Each frame is decoded before it is used,
-               so painting it never stalls the scroll. ---- */
-            function src(i) { return DIR + ('00' + (i + 1)).slice(-3) + '.webp'; }
-            var order = [], seen = {};
-            [8, 4, 2, 1].forEach(function (step) {
-                for (var i = 0; i < N; i += step) if (!seen[i]) { seen[i] = 1; order.push(i); }
-            });
-            var q = 0, active = 0;
-            function done(i, bmp) { frames[i] = bmp; ready[i] = true; dirty = true; kick(); }
-            function fetchFrame(i, cb) {
+            /* ---- Two layers of pictures ----
+               1. Contact sheets: every frame, small, packed 80 to a file. Four
+                  small downloads and the whole walk can be scrubbed at once.
+               2. Sharp frames, one file each, fetched in walking order starting
+                  where the visitor is. Only the frames around the current spot
+                  are kept decoded; the rest are released, so a phone never runs
+                  short of memory and never has to decode while scrolling. */
+            var PER = 80, COLS = 10, sheets = [], sheetReady = [];
+            var TW = 0, TH = 0;
+            function loadSheet(k) {
                 var img = new Image();
-                img.src = src(i);
-                var decoded = img.decode ? img.decode() : new Promise(function (r, j) { img.onload = r; img.onerror = j; });
-                decoded.then(function () {
-                    if (window.createImageBitmap) return createImageBitmap(img).then(function (b) { done(i, b); }, function () { done(i, img); });
-                    done(i, img);
-                }).catch(function () {}).then(cb);
+                img.src = DIR + 'lo-' + k + '.webp';
+                var ok = function (bmp) { sheets[k] = bmp; sheetReady[k] = true; dirty = true; kick(); };
+                (img.decode ? img.decode() : new Promise(function (r) { img.onload = r; }))
+                    .then(function () {
+                        if (!TW) { TW = img.naturalWidth / COLS; TH = img.naturalHeight / (PER / COLS); }
+                        return window.createImageBitmap ? createImageBitmap(img).then(ok, function () { ok(img); }) : ok(img);
+                    }).catch(function () {})
+                    .then(function () { if (k + 1 < Math.ceil(N / PER)) loadSheet(k + 1); });
             }
+            loadSheet(0);
+
+            var hi = new Array(N), hiLoaded = new Array(N), hiRequested = new Array(N);
+            var bmp = new Map(), decoding = 0, active = 0;
+            function src(i) { return DIR + 'f' + ('00' + (i + 1)).slice(-3) + '.webp'; }
             function pump() {
-                while (active < 4 && q < order.length) {
-                    active++;
-                    fetchFrame(order[q++], function () { active--; pump(); });
+                var start = Math.max(0, Math.floor(cur * (N - 1)) - 4);
+                while (active < 4) {
+                    var i = -1;
+                    for (var k = start; k < N; k++) if (!hiRequested[k]) { i = k; break; }
+                    if (i < 0) for (k = 0; k < start; k++) if (!hiRequested[k]) { i = k; break; }
+                    if (i < 0) return;
+                    hiRequested[i] = true; active++;
+                    (function (i) {
+                        var img = new Image();
+                        img.onload = function () { hiLoaded[i] = true; active--; manage(); pump(); };
+                        img.onerror = function () { active--; pump(); };
+                        img.src = src(i);
+                        hi[i] = img;
+                    })(i);
                 }
             }
-            pump();
-
-            function nearestBelow(i) { for (var k = i; k >= 0; k--) if (ready[k]) return k; for (k = i + 1; k < N; k++) if (ready[k]) return k; return -1; }
+            // decode the frames just ahead (and a few behind); release the rest
+            var lastDir = 1;
+            function manage() {
+                var c = Math.round(cur * (N - 1));
+                var ahead = lastDir > 0 ? 22 : 8, behind = lastDir > 0 ? 8 : 22;
+                bmp.forEach(function (b, i) {
+                    if (i < c - behind - 10 || i > c + ahead + 10) { if (b && b.close) b.close(); bmp.delete(i); }
+                });
+                if (!window.createImageBitmap) return;
+                for (var d = 0; d <= Math.max(ahead, behind) && decoding < 2; d++) {
+                    [c + d * lastDir, c - d * lastDir].forEach(function (i) {
+                        if (decoding >= 2 || i < 0 || i >= N || !hiLoaded[i] || bmp.has(i)) return;
+                        if (i > c + ahead || i < c - behind) return;
+                        decoding++;
+                        bmp.set(i, null);
+                        createImageBitmap(hi[i]).then(function (b) {
+                            decoding--;
+                            if (bmp.has(i)) { bmp.set(i, b); dirty = true; kick(); } else if (b.close) b.close();
+                            manage();
+                        }, function () { decoding--; bmp.delete(i); });
+                    });
+                }
+            }
 
             /* ---- Geometry is measured on resize only, never while scrolling ---- */
             var cw = 0, ch = 0, top = 0, travel = 1;
@@ -1390,35 +1429,42 @@
                 top = section.getBoundingClientRect().top + window.scrollY;
                 travel = Math.max(section.offsetHeight - stage.offsetHeight, 1);
             }
-            function drawFrame(img, alpha) {
-                var iw = img.width, ih = img.height;
+            function cover(iw, ih) {
                 var s = Math.max(cw / iw, ch / ih);
-                var dw = iw * s, dh = ih * s;
+                return [(cw - iw * s) / 2, (ch - ih * s) * FOCUS_Y, iw * s, ih * s];
+            }
+            // draw frame i with the sharpest picture that is ready; false if none
+            function drawFrame(i, alpha) {
+                var b = bmp.get(i);
                 ctx.globalAlpha = alpha;
-                ctx.drawImage(img, (cw - dw) / 2, (ch - dh) * FOCUS_Y, dw, dh);
+                if (b) { var r = cover(b.width, b.height); ctx.drawImage(b, r[0], r[1], r[2], r[3]); return true; }
+                if (!window.createImageBitmap && hiLoaded[i]) { r = cover(hi[i].naturalWidth, hi[i].naturalHeight); ctx.drawImage(hi[i], r[0], r[1], r[2], r[3]); return true; }
+                var k = Math.floor(i / PER), sh = sheets[k];
+                if (!sheetReady[k]) return false;
+                var j = i % PER, sx = (j % COLS) * TW, sy = Math.floor(j / COLS) * TH;
+                r = cover(TW, TH);
+                ctx.drawImage(sh, sx, sy, TW, TH, r[0], r[1], r[2], r[3]);
+                return true;
             }
             function target() { return Math.min(Math.max((window.scrollY - top) / travel, 0), 1); }
             function ramp(x, a, b) { return Math.min(Math.max((x - a) / (b - a), 0), 1); }
 
-            var cur = 0, shownPos = -1, dirty = true, raf = 0, inView = true, last = 0, chapShown = -1;
+            var cur = 0, shownPos = -1, dirty = true, raf = 0, inView = true, last = 0, chapShown = -1, lastManaged = -1;
             function frame(now) {
                 raf = 0;
                 var dt = last ? Math.min(now - last, 64) : 16.7;
                 last = now;
                 var goal = target();
-                // time-based easing: the same glide at 60 Hz and 120 Hz
+                if (goal !== cur) lastDir = goal > cur ? 1 : -1;
                 cur += (goal - cur) * (1 - Math.pow(1 - 0.14, dt / 16.7));
                 if (Math.abs(goal - cur) < 0.00015) cur = goal;
 
-                /* Between two frames, the next one fades over the current one,
-                   so the picture moves continuously instead of stepping. */
-                var pos = cur * (N - 1);
+                var pos = cur * (N - 1), i = Math.floor(pos), f = pos - i;
+                if (i !== lastManaged) { lastManaged = i; manage(); pump(); }
                 if (dirty || Math.abs(pos - shownPos) > 0.01) {
-                    var i = Math.floor(pos), f = pos - i;
-                    var a = ready[i] ? i : nearestBelow(i);
-                    if (a >= 0) {
-                        drawFrame(frames[a], 1);
-                        if (a === i && f > 0.02 && i + 1 < N && ready[i + 1]) drawFrame(frames[i + 1], f);
+                    if (drawFrame(i, 1)) {
+                        // the next frame fades in over this one, so motion never steps
+                        if (f > 0.02 && i + 1 < N) drawFrame(i + 1, f);
                         shownPos = pos; dirty = false;
                         if (!section.classList.contains('has-frame')) section.classList.add('has-frame');
                     }
@@ -1454,8 +1500,6 @@
                 kick();
             }).observe(section);
             window.addEventListener('scroll', kick, { passive: true });
-            // the phone's toolbar showing and hiding fires resize; only re-measure
-            // when the width changes or the height really moves
             var lastW = window.innerWidth, lastH = window.innerHeight;
             window.addEventListener('resize', function () {
                 if (window.innerWidth !== lastW || Math.abs(window.innerHeight - lastH) > 120) {
@@ -1466,6 +1510,7 @@
             window.addEventListener('load', function () { measure(); kick(); });
             measure();
             cur = target();
+            pump();
             kick();
         })();
 
