@@ -18,10 +18,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="preload" as="image" href="images/film/f001.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
-    <link rel="preload" as="image" href="images/film/lo-0.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
-    <link rel="preload" as="image" href="images/film-wide/f001.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
-    <link rel="preload" as="image" href="images/film-wide/lo-0.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
+    <link rel="preload" as="image" href="images/film/f001.webp?v=4" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
+    <link rel="preload" as="image" href="images/film/lo-0.webp?v=4" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
+    <link rel="preload" as="image" href="images/film-wide/f001.webp?v=4" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
+    <link rel="preload" as="image" href="images/film-wide/lo-0.webp?v=4" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Local-business details for Google. Every value here is the salon's own:
@@ -719,8 +719,8 @@
         <section id="top" class="film" aria-label="Walk into LocalNail Salon">
             <div class="film-stage" id="filmStage">
                 <picture>
-                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="1600" height="900">
-                    <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="720" height="1280" fetchpriority="high"
+                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp?v=4" width="1600" height="900">
+                    <img class="film-poster" id="filmPoster" src="images/film/f001.webp?v=4" width="720" height="1280" fetchpriority="high"
                      alt="The LocalNail Salon storefront on Thnou Street, seen from the pavement">
                 </picture>
                 <canvas id="filmCanvas" aria-hidden="true"></canvas>
@@ -731,27 +731,27 @@
                     <span data-i18n="film.place">Siem Reap &middot; 10 AM &ndash; 10 PM</span>
                 </div>
 
-                <div class="chapter" data-from="0" data-to="0.11">
+                <div class="chapter" data-from="0" data-to="0.11" data-mfrom="0" data-mto="0.12">
                     <p class="eyebrow" data-i18n="film.e1">Nails &middot; Beauty &middot; Self Care</p>
                     <h1 class="display" data-i18n="film.t1">Polished<br><span class="acc">to perfection.</span></h1>
                 </div>
-                <div class="chapter" data-from="0.13" data-to="0.23">
+                <div class="chapter" data-from="0.13" data-to="0.23" data-mfrom="0.145" data-mto="0.255">
                     <p class="eyebrow" data-i18n="film.e2">02 &mdash; Step in</p>
                     <h2 class="display" data-i18n="film.t2">Come in,<br><span class="acc">get pampered.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.27" data-to="0.38">
+                <div class="chapter" data-from="0.27" data-to="0.38" data-mfrom="0.30" data-mto="0.42">
                     <p class="eyebrow" data-i18n="film.e3">03 &mdash; Pedicure spa</p>
                     <h2 class="display" data-i18n="film.t3">Soak, scrub<br><span class="acc">&amp; relax.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.41" data-to="0.52">
+                <div class="chapter" data-from="0.41" data-to="0.52" data-mfrom="0.455" data-mto="0.58">
                     <p class="eyebrow" data-i18n="film.e4">04 &mdash; Manicure bar</p>
                     <h2 class="display" data-i18n="film.t4">Gel, chrome<br><span class="acc">&amp; nail art.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.56" data-to="0.70">
+                <div class="chapter" data-from="0.56" data-to="0.70" data-mfrom="0.62" data-mto="0.78">
                     <p class="eyebrow" data-i18n="film.e5h">05 &mdash; Hair studio</p>
                     <h2 class="display" data-i18n="film.t5h">Wash, spa<br><span class="acc">&amp; blow-dry.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.78" data-to="1.01">
+                <div class="chapter" data-from="0.78" data-to="1.01" data-mfrom="0.84" data-mto="1.01">
                     <p class="eyebrow" data-i18n="film.e5">06 &mdash; Your moment</p>
                     <h2 class="display" data-i18n="film.t5">Treat yourself.<br><span class="acc">You deserve it.</span></h2>
                     <div class="actions">
@@ -1345,7 +1345,8 @@
             var canvas = document.getElementById('filmCanvas');
             var ctx = canvas.getContext('2d', { alpha: false });
             var chapters = [].slice.call(section.querySelectorAll('.chapter')).map(function (el) {
-                return { el: el, a: parseFloat(el.dataset.from), b: parseFloat(el.dataset.to), o: -1, y: 0 };
+                var phone = !window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
+                return { el: el, a: parseFloat(phone ? el.dataset.mfrom : el.dataset.from), b: parseFloat(phone ? el.dataset.mto : el.dataset.to), o: -1, y: 0 };
             });
             var hint = document.getElementById('filmHint');
             var bar = document.getElementById('filmBar');
@@ -1354,7 +1355,9 @@
             // phones get the portrait walk-in, wide screens the landscape one
             var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
             var DIR = WIDE ? 'images/film-wide/' : 'images/film/';
-            var N = WIDE ? 310 : 308;
+            var N = WIDE ? 310 : 296;
+            // bump FILM_V whenever the frames change, so phones never reuse old cached pictures
+            var FILM_V = '?v=4';
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
@@ -1370,7 +1373,7 @@
             var TW = 0, TH = 0;
             function loadSheet(k) {
                 var img = new Image();
-                img.src = DIR + 'lo-' + k + '.webp';
+                img.src = DIR + 'lo-' + k + '.webp' + FILM_V;
                 var ok = function (bmp) { sheets[k] = bmp; sheetReady[k] = true; dirty = true; kick(); };
                 (img.decode ? img.decode() : new Promise(function (r) { img.onload = r; }))
                     .then(function () {
@@ -1383,7 +1386,7 @@
 
             var hi = new Array(N), hiLoaded = new Array(N), hiRequested = new Array(N);
             var bmp = new Map(), decoding = 0, active = 0;
-            function src(i) { return DIR + 'f' + ('00' + (i + 1)).slice(-3) + '.webp'; }
+            function src(i) { return DIR + 'f' + ('00' + (i + 1)).slice(-3) + '.webp' + FILM_V; }
             function pump() {
                 var start = Math.max(0, Math.floor(cur * (N - 1)) - 4);
                 while (active < 4) {
@@ -1477,7 +1480,7 @@
                 var chap = 0;
                 chapters.forEach(function (c, k) {
                     var fin = k === 0 ? 1 : ramp(cur, c.a, c.a + 0.035);
-                    var fout = 1 - ramp(cur, c.b - 0.035, c.b);
+                    var fout = k === chapters.length - 1 ? 1 : 1 - ramp(cur, c.b - 0.035, c.b);   // the closing words stay
                     var o = Math.round(Math.min(fin, fout) * 100) / 100;
                     var y = Math.round((cur < (c.a + c.b) / 2 ? (1 - fin) * 26 : -(1 - fout) * 26) * 2) / 2;
                     if (o !== c.o || y !== c.y) {
