@@ -18,7 +18,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Anton&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="preload" as="image" href="images/film/f001.webp">
+    <link rel="preload" as="image" href="images/film/f001.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
+    <link rel="preload" as="image" href="images/film-wide/f001.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Local-business details for Google. Every value here is the salon's own:
@@ -230,7 +231,7 @@
         html[lang="km"] .btn-sm { font-size: 13px; }
 
         /* ===== Film hero: the walk-in video, driven by the scroll ===== */
-        .film { position: relative; height: 520vh; background: var(--night); }
+        .film { position: relative; height: 640vh; background: var(--night); }
         .film-stage {
             position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
         }
@@ -698,34 +699,41 @@
         <!-- Film: walk from the street into the salon as you scroll -->
         <section id="top" class="film" aria-label="Walk into LocalNail Salon">
             <div class="film-stage" id="filmStage">
-                <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="540" height="960" fetchpriority="high"
+                <picture>
+                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="960" height="540">
+                    <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="540" height="960" fetchpriority="high"
                      alt="The LocalNail Salon storefront on Thnou Street, seen from the pavement">
+                </picture>
                 <canvas id="filmCanvas" aria-hidden="true"></canvas>
                 <div class="film-shade"></div>
 
                 <div class="film-meta" aria-hidden="true">
-                    <span><b id="filmNum">01</b> / 05</span>
+                    <span><b id="filmNum">01</b> / 06</span>
                     <span data-i18n="film.place">Siem Reap &middot; 10 AM &ndash; 10 PM</span>
                 </div>
 
-                <div class="chapter" data-from="0" data-to="0.13">
+                <div class="chapter" data-from="0" data-to="0.11">
                     <p class="eyebrow" data-i18n="film.e1">Nails &middot; Beauty &middot; Self Care</p>
                     <h1 class="display" data-i18n="film.t1">Good nails,<br><span class="acc">good mood.</span></h1>
                 </div>
-                <div class="chapter" data-from="0.15" data-to="0.27">
+                <div class="chapter" data-from="0.13" data-to="0.23">
                     <p class="eyebrow" data-i18n="film.e2">02 &mdash; Step in</p>
                     <h2 class="display" data-i18n="film.t2">Off the street,<br>into <span class="acc">LocalNail.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.29" data-to="0.41">
+                <div class="chapter" data-from="0.27" data-to="0.38">
                     <p class="eyebrow" data-i18n="film.e3">03 &mdash; Pedicure lounge</p>
                     <h2 class="display" data-i18n="film.t3">Seats made for<br><span class="acc">slowing down.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.44" data-to="0.64">
+                <div class="chapter" data-from="0.41" data-to="0.52">
                     <p class="eyebrow" data-i18n="film.e4">04 &mdash; Nail stations</p>
                     <h2 class="display" data-i18n="film.t4">Beauty in<br>the <span class="acc">details.</span></h2>
                 </div>
-                <div class="chapter" data-from="0.70" data-to="1.01">
-                    <p class="eyebrow" data-i18n="film.e5">05 &mdash; Your moment</p>
+                <div class="chapter" data-from="0.56" data-to="0.70">
+                    <p class="eyebrow" data-i18n="film.e5h">05 &mdash; Hair studio</p>
+                    <h2 class="display" data-i18n="film.t5h">Hair, too.<br><span class="acc">Wash, spa &amp; style.</span></h2>
+                </div>
+                <div class="chapter" data-from="0.78" data-to="1.01">
+                    <p class="eyebrow" data-i18n="film.e5">06 &mdash; Your moment</p>
                     <h2 class="display" data-i18n="film.t5">Your time.<br>Your nails.<br><span class="acc">Your moment.</span></h2>
                     <div class="actions">
                         <a href="#book" class="btn btn-chrome js-book" data-i18n="btn.bookSeat">Book your seat</a>
@@ -964,7 +972,9 @@
             'film.t3': 'កៅអីសម្រាប់<br><span class="acc">ការសម្រាកលំហែ</span>',
             'film.e4': '០៤ &mdash; តុធ្វើក្រចកដៃ',
             'film.t4': 'ភាពស្រស់ស្អាត<br><span class="acc">នៅក្នុងភាពល្អិតល្អន់</span>',
-            'film.e5': '០៥ &mdash; ពេលវេលារបស់អ្នក',
+            'film.e5h': '០៥ &mdash; ផ្នែកសក់',
+            'film.t5h': 'សេវាសក់ផងដែរ<br><span class="acc">កក់ ស្ប៉ា និងរចនាម៉ូដ</span>',
+            'film.e5': '០៦ &mdash; ពេលវេលារបស់អ្នក',
             'film.t5': 'ពេលវេលារបស់អ្នក<br>ក្រចករបស់អ្នក<br><span class="acc">គ្រាពិសេសរបស់អ្នក</span>',
             'film.hint': 'រំកិលចុះ ដើម្បីចូលក្នុងហាង',
             'ticker': 'ក្រចកស្អាត អារម្មណ៍ល្អ &mdash; ក្រចក &bull; សម្រស់ &bull; ការថែទាំខ្លួន &mdash;',
@@ -1319,7 +1329,7 @@
             var bar = document.getElementById('filmBar');
             var num = document.getElementById('filmNum');
             var header = document.getElementById('siteHeader');
-            var N = 251, frames = new Array(N), ready = new Array(N);
+            var N = 296, frames = new Array(N), ready = new Array(N);
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
@@ -1327,7 +1337,9 @@
             /* ---- Loading: every 8th frame first so the whole walk is there
                early, then the gaps. Each frame is decoded before it is used,
                so painting it never stalls the scroll. ---- */
-            function src(i) { return 'images/film/f' + ('00' + (i + 1)).slice(-3) + '.webp'; }
+            var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
+            var DIR = WIDE ? 'images/film-wide/f' : 'images/film/f';
+            function src(i) { return DIR + ('00' + (i + 1)).slice(-3) + '.webp'; }
             var order = [], seen = {};
             [8, 4, 2, 1].forEach(function (step) {
                 for (var i = 0; i < N; i += step) if (!seen[i]) { seen[i] = 1; order.push(i); }
