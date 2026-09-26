@@ -700,7 +700,7 @@
         <section id="top" class="film" aria-label="Walk into LocalNail Salon">
             <div class="film-stage" id="filmStage">
                 <picture>
-                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="960" height="540">
+                    <source media="(min-aspect-ratio: 1/1) and (min-width: 768px)" srcset="images/film-wide/f001.webp" width="1280" height="720">
                     <img class="film-poster" id="filmPoster" src="images/film/f001.webp" width="540" height="960" fetchpriority="high"
                      alt="The LocalNail Salon storefront on Thnou Street, seen from the pavement">
                 </picture>
@@ -1329,7 +1329,10 @@
             var bar = document.getElementById('filmBar');
             var num = document.getElementById('filmNum');
             var header = document.getElementById('siteHeader');
-            var N = 296, frames = new Array(N), ready = new Array(N);
+            // phones get the portrait walk-in, wide screens the landscape one
+            var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
+            var DIR = WIDE ? 'images/film-wide/f' : 'images/film/f';
+            var N = WIDE ? 279 : 296, frames = new Array(N), ready = new Array(N);
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
@@ -1337,8 +1340,6 @@
             /* ---- Loading: every 8th frame first so the whole walk is there
                early, then the gaps. Each frame is decoded before it is used,
                so painting it never stalls the scroll. ---- */
-            var WIDE = window.matchMedia('(min-aspect-ratio: 1/1) and (min-width: 768px)').matches;
-            var DIR = WIDE ? 'images/film-wide/f' : 'images/film/f';
             function src(i) { return DIR + ('00' + (i + 1)).slice(-3) + '.webp'; }
             var order = [], seen = {};
             [8, 4, 2, 1].forEach(function (step) {
