@@ -140,6 +140,19 @@
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
         .toast.error { background: var(--warn); }
         .savebar-space { height: 8px; }
+        #newCount:not(:empty) { display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 4px; border-radius: 999px; background: var(--warn); color: #fff; font-size: 10px; letter-spacing: 0; }
+        .su { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; background: #fff; }
+        .su.is-new { border-color: var(--warn); }
+        .su-top { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+        .su-top strong { font-size: 15px; color: var(--ink); }
+        .su-meta { color: var(--muted); font-size: 12px; }
+        .su-grid { display: grid; gap: 4px 16px; grid-template-columns: 110px 1fr; font-size: 13px; margin-top: 10px; }
+        .su-grid dt { color: var(--muted); }
+        .su-grid dd { margin: 0; color: var(--ink); }
+        .su-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+        .su-tools select { width: auto; min-width: 150px; }
+        .slip { width: 120px; border-radius: 10px; border: 1px solid var(--line); display: block; margin-top: 10px; }
+        .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -177,6 +190,8 @@
             <button class="tab" role="tab" data-tab="styles" aria-selected="false">Styles gallery</button>
             <button class="tab" role="tab" data-tab="photos" aria-selected="false">Salon photos</button>
             <button class="tab" role="tab" data-tab="reviews" aria-selected="false">Reviews</button>
+            <button class="tab" role="tab" data-tab="membership" aria-selected="false">Membership</button>
+            <button class="tab" role="tab" data-tab="signups" aria-selected="false">Sign-ups <span id="newCount"></span></button>
         </nav>
     </header>
 
@@ -186,6 +201,8 @@
         <section class="panel" id="panel-styles" hidden></section>
         <section class="panel" id="panel-photos" hidden></section>
         <section class="panel" id="panel-reviews" hidden></section>
+        <section class="panel" id="panel-membership" hidden></section>
+        <section class="panel" id="panel-signups" hidden></section>
     </main>
 </div>
 
@@ -406,9 +423,132 @@
             '</div>';
     }
 
+    function renderMembership() {
+        if (!content.membership) content.membership = { intro: '', plans: [], khqrImage: '', khqrName: '' };
+        var M = content.membership;
+        el('panel-membership').innerHTML =
+            '<div class="card"><h2>Monthly membership</h2>' +
+                '<p class="hint">The page at <a href="/membership" target="_blank" rel="noopener">/membership</a>. A price that starts with “[” shows as “Price on request”.</p>' +
+                field('Short intro under the heading', 'membership.intro', { textarea: true }) +
+            '</div>' +
+            '<div class="card"><h2>Plans</h2>' +
+                M.plans.map(function (p, i) {
+                    var base = 'membership.plans.' + i;
+                    return '<div class="row"><div class="row-head"><strong>' + esc(p.name || 'New plan') + '</strong>' +
+                        '<div class="row-tools">' +
+                            '<button class="icon-btn" data-move="membership.plans" data-i="' + i + '" data-dir="-1" title="Move up">&uarr;</button>' +
+                            '<button class="icon-btn" data-move="membership.plans" data-i="' + i + '" data-dir="1" title="Move down">&darr;</button>' +
+                            '<button class="icon-btn" data-remove="membership.plans" data-i="' + i + '" title="Remove">&times;</button>' +
+                        '</div></div>' +
+                        '<div class="grid2">' + field('Plan name', base + '.name') + field('Price', base + '.price', { placeholder: '$30' }) + '</div>' +
+                        field('Under the price', base + '.period', { placeholder: 'per month' }) +
+                        field('What is included (one per line)', base + '.includes', { textarea: true }) +
+                    '</div>';
+                }).join('') +
+                '<div class="savebar-space"></div>' +
+                '<button class="btn btn-ghost btn-sm" data-add="membership.plans" data-kind="plan">+ Add plan</button>' +
+            '</div>' +
+            '<div class="card"><h2>KHQR payment</h2>' +
+                '<p class="hint">Upload the shop’s KHQR (in ABA: Receive money → QR, then save or screenshot it). When there is no QR here, customers only see “Pay at the salon”. Payments go straight to the shop’s bank account; check each payment screenshot in Sign-ups against the bank app.</p>' +
+                '<div class="photo-row" style="margin-top:12px">' +
+                    '<div class="thumb"><img src="' + esc(M.khqrImage || '') + '" alt=""></div>' +
+                    '<div class="photo-fields">' +
+                        '<label class="file-label">Upload KHQR<input type="file" accept="image/*" data-upload="membership.khqrImage"></label> ' +
+                        (M.khqrImage ? '<button class="btn btn-danger btn-sm" data-clear="membership.khqrImage">Remove QR</button>' : '') +
+                        field('Account name shown above the QR', 'membership.khqrName', { placeholder: 'LOCALNAIL SALON' }) +
+                    '</div></div>' +
+            '</div>';
+    }
+
+    /* ---------- sign-ups: their own list, saved at once (not with Save changes) ---------- */
+    var members = [], memberFilter = 'all';
+    var STATUS = [
+        { value: 'new', label: 'New' }, { value: 'contacted', label: 'Contacted' },
+        { value: 'paid', label: 'Paid' }, { value: 'active', label: 'Active member' },
+        { value: 'cancelled', label: 'Cancelled' }
+    ];
+    function loadMembers() {
+        return fetch('/api/members', { cache: 'no-store' })
+            .then(function (r) { if (!r.ok) throw new Error('Could not load sign-ups'); return r.json(); })
+            .then(function (list) { members = list; renderSignups(); })
+            .catch(function (e) { toast(e.message, true); });
+    }
+    function telHref(num) {
+        var d = String(num).replace(/[^\d+]/g, '');
+        return 'tel:' + (d.charAt(0) === '0' ? '+855' + d.slice(1) : d);
+    }
+    function renderSignups() {
+        var newOnes = members.filter(function (m) { return m.status === 'new'; }).length;
+        el('newCount').textContent = newOnes ? String(newOnes) : '';
+        var shown = members.filter(function (m) { return memberFilter === 'all' || m.status === memberFilter; });
+        el('panel-signups').innerHTML =
+            '<div class="card"><h2>Membership sign-ups</h2>' +
+                '<p class="hint">Customers who joined from the website. Changes here save straight away.</p>' +
+                '<div class="filters">' +
+                    [{ value: 'all', label: 'All (' + members.length + ')' }].concat(STATUS).map(function (s) {
+                        return '<button class="tab" data-filter="' + s.value + '" aria-selected="' + (memberFilter === s.value) + '">' + esc(s.label) + '</button>';
+                    }).join('') +
+                    '<button class="btn btn-ghost btn-sm" data-reload style="margin-left:auto">Refresh</button>' +
+                '</div>' +
+                (shown.length ? '' : '<p class="hint" style="margin-top:16px">No sign-ups here yet.</p>') +
+                shown.map(function (m) {
+                    var when = new Date(m.createdAt);
+                    return '<div class="su' + (m.status === 'new' ? ' is-new' : '') + '">' +
+                        '<div class="su-top"><strong>' + esc(m.name) + '</strong>' +
+                            '<a href="' + esc(telHref(m.phone)) + '">' + esc(m.phone) + '</a>' +
+                            '<span class="su-meta">' + esc(when.toLocaleString()) + '</span></div>' +
+                        '<dl class="su-grid">' +
+                            '<dt>Plan</dt><dd>' + esc(m.planName) + (m.planPrice ? ' · ' + esc(m.planPrice) : '') + '</dd>' +
+                            '<dt>Start</dt><dd>' + esc(m.startDate) + '</dd>' +
+                            '<dt>Payment</dt><dd>' + (m.payment === 'khqr' ? 'KHQR' + (m.receipt ? ' — screenshot below' : ' — no screenshot') : 'Pay at the salon') + '</dd>' +
+                            (m.note ? '<dt>Customer note</dt><dd>' + esc(m.note) + '</dd>' : '') +
+                        '</dl>' +
+                        (m.receipt ? '<a href="/api/members/' + esc(m.id) + '/receipt" target="_blank" rel="noopener"><img class="slip" src="/api/members/' + esc(m.id) + '/receipt" alt="Payment screenshot from ' + esc(m.name) + '"></a>' : '') +
+                        '<label class="field"><span>Staff note</span><input type="text" data-member-note="' + esc(m.id) + '" value="' + esc(m.staffNote || '') + '" placeholder="e.g. called, paid $30 cash"></label>' +
+                        '<div class="su-tools">' +
+                            '<select data-member-status="' + esc(m.id) + '">' + STATUS.map(function (s) {
+                                return '<option value="' + s.value + '"' + (s.value === m.status ? ' selected' : '') + '>' + s.label + '</option>';
+                            }).join('') + '</select>' +
+                            '<button class="btn btn-danger btn-sm" data-member-delete="' + esc(m.id) + '">Delete</button>' +
+                        '</div></div>';
+                }).join('') +
+            '</div>';
+    }
+    function patchMember(id, change) {
+        return fetch('/api/members/' + encodeURIComponent(id), {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(change)
+        }).then(function (r) { if (!r.ok) throw new Error('Could not save'); return r.json(); })
+          .then(function (m) {
+              members = members.map(function (x) { return x.id === m.id ? m : x; });
+              toast('Saved'); renderSignups();
+          })
+          .catch(function (e) { toast(e.message, true); });
+    }
+    document.addEventListener('change', function (e) {
+        var s = e.target.getAttribute && e.target.getAttribute('data-member-status');
+        if (s) patchMember(s, { status: e.target.value });
+        var n = e.target.getAttribute && e.target.getAttribute('data-member-note');
+        if (n) patchMember(n, { staffNote: e.target.value });
+    });
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-filter],[data-reload],[data-member-delete],[data-clear]');
+        if (!b) return;
+        if (b.dataset.filter) { memberFilter = b.dataset.filter; renderSignups(); }
+        else if (b.hasAttribute('data-reload')) loadMembers();
+        else if (b.dataset.clear) { setPath(b.dataset.clear, ''); setDirty(true); renderMembership(); }
+        else if (b.dataset.memberDelete) {
+            if (!confirm('Delete this sign-up and its payment screenshot? This cannot be undone.')) return;
+            fetch('/api/members/' + encodeURIComponent(b.dataset.memberDelete), { method: 'DELETE' })
+                .then(function (r) { if (!r.ok) throw new Error('Could not delete'); })
+                .then(function () { members = members.filter(function (x) { return x.id !== b.dataset.memberDelete; }); renderSignups(); toast('Deleted'); })
+                .catch(function (err) { toast(err.message, true); });
+        }
+    });
+
     var renderers = {
         details: renderDetails, services: renderServices,
-        styles: renderStyles, photos: renderPhotos, reviews: renderReviews
+        styles: renderStyles, photos: renderPhotos, reviews: renderReviews,
+        membership: renderMembership
     };
     function renderPanel(name) { renderers[name](); }
     function renderAll() { Object.keys(renderers).forEach(renderPanel); }
@@ -427,7 +567,8 @@
         service: { name: 'New service', price: '$0', desc: '' },
         gallery: { src: '', category: 'nail-art', shape: 'square', alt: '' },
         strip: { src: '', caption: 'New photo', alt: '' },
-        review: { quote: '', label: 'LocalNail Client' }
+        review: { quote: '', label: 'LocalNail Client' },
+        plan: { id: '', name: 'New plan', price: '[SET PRICE]', period: 'per month', includes: '' }
     };
 
     document.addEventListener('click', function (e) {
@@ -448,7 +589,9 @@
             arr.splice(+btn.dataset.i, 1);
             setDirty(true); renderPanel(panelName);
         } else if (btn.dataset.add) {
-            getPath(btn.dataset.add).push(JSON.parse(JSON.stringify(BLANKS[btn.dataset.kind])));
+            var blank = JSON.parse(JSON.stringify(BLANKS[btn.dataset.kind]));
+            if (btn.dataset.kind === 'plan') blank.id = 'plan-' + Date.now().toString(36);
+            getPath(btn.dataset.add).push(blank);
             setDirty(true); renderPanel(panelName);
         }
     });
@@ -533,7 +676,7 @@
 
     el('tabs').addEventListener('click', function (e) {
         var tab = e.target.closest('.tab');
-        if (!tab) return;
+        if (!tab || !tab.dataset.tab) return;
         [].forEach.call(document.querySelectorAll('.tab'), function (t) {
             t.setAttribute('aria-selected', String(t === tab));
         });
@@ -571,6 +714,7 @@
                 el('loginView').hidden = true;
                 el('appView').hidden = false;
                 renderAll();
+                loadMembers();
                 setDirty(false);
                 el('status').textContent = 'Loaded';
                 el('status').className = 'status';

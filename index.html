@@ -679,6 +679,7 @@
                 <a href="#about" data-section="about" data-i18n="nav.about">About</a>
                 <a href="#inside" data-section="inside" data-i18n="nav.inside">The Salon</a>
                 <a href="#contact" data-section="contact" data-i18n="nav.contact">Contact</a>
+                <a href="/membership" data-i18n="nav.member">Membership</a>
             </nav>
             <div style="display:flex;align-items:center;gap:6px">
                 <button type="button" class="lang-btn js-lang" aria-label="Change language">ខ្មែរ</button>
@@ -704,6 +705,7 @@
             <a class="m-link" href="#about"><span data-i18n="nav.about">About</span> <small>03</small></a>
             <a class="m-link" href="#inside"><span data-i18n="nav.inside">The Salon</span> <small>04</small></a>
             <a class="m-link" href="#contact"><span data-i18n="nav.contact">Contact</span> <small>05</small></a>
+            <a class="m-link" href="/membership"><span data-i18n="nav.member">Membership</span> <small>06</small></a>
         </nav>
         <div style="margin-top:auto;display:grid;gap:10px">
             <button type="button" class="btn btn-ghost js-lang">ខ្មែរ</button>
@@ -911,7 +913,10 @@
                 <p class="eyebrow mb-5" data-i18n="book.eyebrow">Book appointment</p>
                 <h2 id="book-title" class="display mb-6" data-i18n="book.title">Ready for your<br><span class="acc">next set?</span></h2>
                 <p class="lede mb-9 max-w-xl" data-i18n="book.body">Choose your service, pick a time, and let us take care of the details.</p>
-                <a id="bookingBtn" href="#contact" class="btn btn-chrome" data-i18n="btn.bookAppt">Book an Appointment</a>
+                <div style="display:flex;flex-wrap:wrap;gap:10px">
+                    <a id="bookingBtn" href="#contact" class="btn btn-chrome" data-i18n="btn.bookAppt">Book an Appointment</a>
+                    <a href="/membership" class="btn btn-ghost" data-i18n="btn.member">Join monthly membership</a>
+                </div>
             </div>
         </section>
     </main>
@@ -978,7 +983,7 @@
            ================================================================= */
         var KM = {
             'nav.menu': 'តារាងតម្លៃ', 'nav.styles': 'ម៉ូដក្រចក', 'nav.about': 'អំពីយើង',
-            'nav.inside': 'ខាងក្នុងហាង', 'nav.contact': 'ទំនាក់ទំនង',
+            'nav.inside': 'ខាងក្នុងហាង', 'nav.contact': 'ទំនាក់ទំនង', 'nav.member': 'សមាជិកប្រចាំខែ', 'btn.member': 'ចុះឈ្មោះសមាជិកប្រចាំខែ',
             'btn.book': 'កក់', 'btn.bookAppt': 'កក់ពេលណាត់', 'btn.bookSeat': 'កក់កន្លែងរបស់អ្នក', 'btn.viewMenu': 'មើលតារាងតម្លៃ',
             'film.place': 'សៀមរាប &middot; ម៉ោង ១០ ព្រឹក &ndash; ១០ យប់',
             'film.e1': 'ក្រចក &middot; សម្រស់ &middot; ការថែទាំខ្លួន',

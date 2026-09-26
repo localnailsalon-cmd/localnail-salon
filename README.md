@@ -28,6 +28,39 @@ Press **Save changes** and the website updates immediately — no deploy needed.
 Photos are shrunk in the browser before upload, so a large phone picture
 becomes a small WebP file.
 
+## Monthly membership
+
+Customers join at `/membership`: they pick a plan, enter their name, phone and
+start date, and choose **Pay at the salon** or **Pay now with KHQR** (with an
+optional payment screenshot).
+
+- **Plans, prices and the KHQR image** are edited in the staff area, tab
+  *Membership*. A price that starts with `[` shows as "Price on request".
+  Without a KHQR image, only "Pay at the salon" is offered.
+- **Sign-ups** appear in the tab *Sign-ups*, where staff set a status
+  (New → Contacted → Paid → Active member) and a note. KHQR money goes straight
+  to the shop's bank account; match each screenshot against the bank app.
+- Sign-ups and payment screenshots are private: `data/members.json` and
+  `data/receipts/` on disk, or `private/` with a private ACL in Spaces.
+
+### Telegram alerts
+
+Every new sign-up can be sent to the salon's Telegram (with the payment
+screenshot when there is one):
+
+1. In Telegram, message **@BotFather** → `/newbot` → copy the bot token.
+2. Add the bot to the salon's group (or message it directly), send any message,
+   then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy the
+   `chat.id` (group ids start with `-`).
+3. Set two environment variables and restart:
+
+   ```bash
+   TELEGRAM_BOT_TOKEN='123456:ABC...'
+   TELEGRAM_CHAT_ID='-1001234567890'
+   ```
+
+If Telegram is not set or cannot be reached, the sign-up is still saved.
+
 ## Password
 
 The password comes from the `ADMIN_PASSWORD` environment variable. Without it

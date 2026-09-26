@@ -6,6 +6,14 @@
 //   GET  /api/session        is this visitor signed in?
 //   PUT  /api/content        save content        (staff only)
 //   POST /api/upload         { name, dataUrl }   (staff only) -> { src }
+//   POST /api/members        public: a membership sign-up (+ optional payment slip)
+//   GET  /api/members        list sign-ups                   (staff only)
+//   PATCH /api/members/:id   { status, note }                (staff only)
+//   DELETE /api/members/:id                                  (staff only)
+//   GET  /api/members/:id/receipt   the payment slip image   (staff only)
+//
+// New sign-ups are also sent to the salon's Telegram when TELEGRAM_BOT_TOKEN
+// and TELEGRAM_CHAT_ID are set (see README).
 //
 // Content and uploads go through storage.js: DigitalOcean Spaces when the
 // SPACES_* variables are set, otherwise the local data/ and images/uploads/
@@ -39,6 +47,8 @@ const SECRET_FILE = path.join(DATA_DIR, '.session-secret');
 const UPLOAD_DIR = path.join(ROOT, 'images', 'uploads');
 
 const SESSION_HOURS = 12;
+const MAX_SIGNUP_BYTES = 6 * 1024 * 1024;       // form + a shrunk payment slip
+const MEMBER_STATUSES = ['new', 'contacted', 'paid', 'active', 'cancelled'];
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
@@ -153,10 +163,199 @@ function readBody(req, limit, cb) {
 }
 
 
+/* ---------------- membership sign-ups ---------------- */
+
+// A few sign-ups per visitor per hour is plenty; more is a script.
+const signupHits = new Map();
+function tooManySignups(ip) {
+  const now = Date.now();
+  const list = (signupHits.get(ip) || []).filter(function (t) { return now - t < 3600 * 1000; });
+  signupHits.set(ip, list);
+  if (list.length >= 5) return true;
+  list.push(now);
+  return false;
+}
+
+// Every change to the list goes through one queue, so two sign-ups arriving
+// together can never overwrite each other.
+let membersQueue = Promise.resolve();
+function withMembers(change) {
+  const run = membersQueue.then(function () {
+    return storage.readMembers().then(function (list) {
+      const result = change(list);
+      return storage.writeMembers(list).then(function () { return result; });
+    });
+  });
+  membersQueue = run.catch(function () {});
+  return run;
+}
+
+function cleanText(value, max) {
+  return String(value == null ? '' : value).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
+}
+
+/* Telegram: one message per sign-up, with the payment slip when there is one.
+   A failure here never loses the sign-up; it is already saved. */
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || '';
+function telegram(method, body, contentType) {
+  return new Promise(function (resolve, reject) {
+    const req = require('https').request({
+      method: 'POST', host: 'api.telegram.org', path: '/bot' + TELEGRAM_TOKEN + '/' + method,
+      headers: { 'Content-Type': contentType, 'Content-Length': body.length }
+    }, function (res) {
+      const chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        if (res.statusCode === 200) resolve();
+        else reject(new Error('Telegram ' + res.statusCode + ' ' + Buffer.concat(chunks).toString().slice(0, 200)));
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(10000, function () { req.destroy(new Error('Telegram timeout')); });
+    req.end(body);
+  });
+}
+function notifyTelegram(member, receipt) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) return Promise.resolve();
+  const text = [
+    '💅 New membership sign-up',
+    'Name: ' + member.name,
+    'Phone: ' + member.phone,
+    'Plan: ' + member.planName + (member.planPrice ? ' (' + member.planPrice + ')' : ''),
+    'Start: ' + member.startDate,
+    'Payment: ' + (member.payment === 'khqr' ? 'KHQR' + (receipt ? ' — slip attached' : ' — no slip yet') : 'Pay at the salon'),
+    member.note ? 'Note: ' + member.note : ''
+  ].filter(Boolean).join('\n');
+  if (!receipt) {
+    return telegram('sendMessage', Buffer.from(JSON.stringify({ chat_id: TELEGRAM_CHAT, text: text })), 'application/json');
+  }
+  const boundary = '----ln' + crypto.randomBytes(8).toString('hex');
+  const part = function (name, value) {
+    return Buffer.from('--' + boundary + '\r\nContent-Disposition: form-data; name="' + name + '"\r\n\r\n' + value + '\r\n');
+  };
+  const body = Buffer.concat([
+    part('chat_id', TELEGRAM_CHAT),
+    part('caption', text),
+    Buffer.from('--' + boundary + '\r\nContent-Disposition: form-data; name="photo"; filename="slip' + receipt.ext +
+      '"\r\nContent-Type: ' + receipt.type + '\r\n\r\n'),
+    receipt.buffer,
+    Buffer.from('\r\n--' + boundary + '--\r\n')
+  ]);
+  return telegram('sendPhoto', body, 'multipart/form-data; boundary=' + boundary);
+}
+
+function handleMembers(req, res, urlPath, ip) {
+  if (urlPath === '/api/members' && req.method === 'POST') {
+    if (tooManySignups(ip)) { sendJson(res, 429, { error: 'Too many sign-ups from this device. Please call the salon.' }); return true; }
+    readBody(req, MAX_SIGNUP_BYTES, function (err, body) {
+      if (err) return sendJson(res, 400, { error: 'The form could not be read. Try a smaller photo.' });
+      if (body.website) return sendJson(res, 200, { ok: true });          // honeypot: a bot filled the hidden field
+      const name = cleanText(body.name, 80);
+      const phone = cleanText(body.phone, 30);
+      const note = cleanText(body.note, 300);
+      const startDate = cleanText(body.startDate, 10);
+      const payment = body.payment === 'khqr' ? 'khqr' : 'salon';
+      if (name.length < 2) return sendJson(res, 400, { error: 'name' });
+      if (!/^\+?[\d\s-]{6,20}$/.test(phone) || phone.replace(/\D/g, '').length < 6) return sendJson(res, 400, { error: 'phone' });
+      const start = /^\d{4}-\d{2}-\d{2}$/.test(startDate) ? new Date(startDate + 'T00:00:00Z') : null;
+      const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+      if (!start || isNaN(start) || start < new Date(today - 864e5) || start > new Date(+today + 400 * 864e5)) {
+        return sendJson(res, 400, { error: 'startDate' });
+      }
+      let receipt = null;
+      if (payment === 'khqr' && body.receipt) {
+        const m = /^data:(image\/(?:webp|jpeg|png));base64,(.+)$/.exec(String(body.receipt));
+        if (!m) return sendJson(res, 400, { error: 'receipt' });
+        const buffer = Buffer.from(m[2], 'base64');
+        if (buffer.length > 4 * 1024 * 1024) return sendJson(res, 400, { error: 'receipt' });
+        receipt = { buffer: buffer, type: m[1], ext: UPLOAD_TYPES[m[1]] };
+      }
+      storage.readContent().then(function (content) {
+        const plans = ((content.membership || {}).plans || []);
+        const plan = plans.filter(function (p) { return p.id === body.planId; })[0];
+        if (!plan) return sendJson(res, 400, { error: 'plan' });
+        const id = Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+        const member = {
+          id: id, createdAt: new Date().toISOString(), status: 'new',
+          name: name, phone: phone, note: note, startDate: startDate,
+          planId: plan.id, planName: cleanText(plan.name, 80), planPrice: cleanText(plan.price, 30),
+          payment: payment, receipt: receipt ? id + receipt.ext : ''
+        };
+        return (receipt ? storage.putReceipt(member.receipt, receipt.buffer, receipt.type) : Promise.resolve())
+          .then(function () { return withMembers(function (list) { list.unshift(member); }); })
+          .then(function () {
+            sendJson(res, 200, { ok: true });
+            notifyTelegram(member, receipt).catch(function (e) { console.error('telegram:', e.message); });
+          });
+      }).catch(function (e) {
+        console.error('sign-up failed:', e.message);
+        sendJson(res, 500, { error: 'server' });
+      });
+    });
+    return true;
+  }
+
+  const match = /^\/api\/members(?:\/([a-z0-9]+))?(\/receipt)?$/.exec(urlPath);
+  if (!match) return false;
+  if (!isStaff(req)) { sendJson(res, 401, { error: 'Please sign in again' }); return true; }
+  const id = match[1];
+
+  if (!id && req.method === 'GET') {
+    storage.readMembers().then(function (list) { sendJson(res, 200, list); })
+      .catch(function () { sendJson(res, 500, { error: 'Could not load sign-ups' }); });
+    return true;
+  }
+  if (id && match[2] && req.method === 'GET') {
+    storage.readMembers().then(function (list) {
+      const m = list.filter(function (x) { return x.id === id; })[0];
+      if (!m || !m.receipt) throw new Error('none');
+      return storage.getReceipt(m.receipt).then(function (buf) {
+        const ext = path.extname(m.receipt);
+        res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'private, no-store' });
+        res.end(buf);
+      });
+    }).catch(function () { sendJson(res, 404, { error: 'No slip' }); });
+    return true;
+  }
+  if (id && !match[2] && req.method === 'PATCH') {
+    readBody(req, 4096, function (err, body) {
+      if (err) return sendJson(res, 400, { error: 'bad request' });
+      withMembers(function (list) {
+        const m = list.filter(function (x) { return x.id === id; })[0];
+        if (!m) return null;
+        if (MEMBER_STATUSES.indexOf(body.status) >= 0) m.status = body.status;
+        if (typeof body.staffNote === 'string') m.staffNote = cleanText(body.staffNote, 500);
+        m.updatedAt = new Date().toISOString();
+        return m;
+      }).then(function (m) { m ? sendJson(res, 200, m) : sendJson(res, 404, { error: 'Not found' }); })
+        .catch(function () { sendJson(res, 500, { error: 'Could not save' }); });
+    });
+    return true;
+  }
+  if (id && !match[2] && req.method === 'DELETE') {
+    let removed = null;
+    withMembers(function (list) {
+      const i = list.findIndex(function (x) { return x.id === id; });
+      if (i >= 0) removed = list.splice(i, 1)[0];
+    }).then(function () {
+      if (removed && removed.receipt) storage.deleteReceipt(removed.receipt);
+      sendJson(res, removed ? 200 : 404, removed ? { ok: true } : { error: 'Not found' });
+    }).catch(function () { sendJson(res, 500, { error: 'Could not delete' }); });
+    return true;
+  }
+  sendJson(res, 405, { error: 'method not allowed' });
+  return true;
+}
+
 /* ---------------- api ---------------- */
 
 function handleApi(req, res, urlPath) {
   const ip = req.socket.remoteAddress || 'unknown';
+  // behind the platform's proxy every visitor shares one socket address, so the
+  // sign-up limit keys on the forwarded client address instead (login keeps the socket)
+  const clientIp = String(req.headers['x-forwarded-for'] || ip).split(',')[0].trim();
+  if (urlPath.indexOf('/api/members') === 0 && handleMembers(req, res, urlPath, clientIp)) return true;
 
   if (urlPath === '/api/content' && req.method === 'GET') {
     storage.readContent()
@@ -259,11 +458,12 @@ const server = http.createServer((req, res) => {
   if (urlPath.startsWith('/api/')) { handleApi(req, res, urlPath); return; }
   if (urlPath === '/') urlPath = '/index.html';
   if (urlPath === '/admin') urlPath = '/admin.html';
+  if (urlPath === '/membership') urlPath = '/members.html';
 
   // Serve only what the website itself needs. Everything else — the server
   // source, package files, data/ and .git — stays private.
   const rel = urlPath.replace(/^\/+/, '');
-  const PUBLIC_FILES = ['index.html', 'admin.html', 'salon-data.js', 'favicon.ico', 'robots.txt', 'sitemap.xml'];
+  const PUBLIC_FILES = ['index.html', 'admin.html', 'members.html', 'salon-data.js', 'favicon.ico', 'robots.txt', 'sitemap.xml'];
   const isPublic = PUBLIC_FILES.includes(rel) || /^images\/[\w./-]+$/.test(rel);
   const safePath = path.normalize(path.join(ROOT, rel));
   if (!isPublic || !safePath.startsWith(ROOT) || safePath.startsWith(DATA_DIR) || rel.includes('..')) {

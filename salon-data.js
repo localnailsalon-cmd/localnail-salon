@@ -37,6 +37,37 @@ window.SALON = {
     }
   },
 
+  /* ---- Monthly membership (edited in the staff area) ---- */
+  membership: {
+    "intro": "Join monthly and keep your nails and hair fresh all month. Pick a plan, choose a start date, and we will confirm by phone.",
+    "plans": [
+      {
+        "id": "nails-monthly",
+        "name": "Nails Monthly",
+        "price": "[SET PRICE]",
+        "period": "per month",
+        "includes": "Gel polish manicure\nGel removal included\nPriority booking"
+      },
+      {
+        "id": "mani-pedi-monthly",
+        "name": "Mani + Pedi Monthly",
+        "price": "[SET PRICE]",
+        "period": "per month",
+        "includes": "Gel manicure\nGel pedicure\nGel removal included"
+      },
+      {
+        "id": "hair-monthly",
+        "name": "Hair Care Monthly",
+        "price": "[SET PRICE]",
+        "period": "per month",
+        "includes": "Hair wash + style\nHair wash + spa"
+      }
+    ],
+    "khqrImage": "",
+    "khqrName": "",
+    "note": "Plans and prices above are examples until the salon sets them in the staff area."
+  },
+
   /* ---- Services & prices (exact, from the salon menu) ---- */
   services: [
     {

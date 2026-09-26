@@ -152,4 +152,55 @@ async function putImage(fileName, buffer, contentType) {
   return publicUrl(key);
 }
 
-module.exports = { readContent, writeContent, putImage, useSpaces, CONTENT_FILE, DATA_DIR, UPLOAD_DIR };
+/* ---------------- private records (membership sign-ups) ----------------
+   These hold customers' names and phone numbers, so they are never public:
+   on disk they live in data/ (which the web server refuses to serve), and in
+   Spaces they are stored with a private ACL and only read by the server. */
+
+const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
+const RECEIPT_DIR = path.join(DATA_DIR, 'receipts');
+
+async function readMembers() {
+  if (!useSpaces) {
+    try { return JSON.parse(fs.readFileSync(MEMBERS_FILE, 'utf8')); }
+    catch (e) { return []; }
+  }
+  try { return JSON.parse((await spacesRequest('GET', 'private/members.json')).toString('utf8')); }
+  catch (err) { if (/: 404/.test(err.message)) return []; throw err; }
+}
+
+async function writeMembers(list) {
+  const text = JSON.stringify(list, null, 2);
+  if (!useSpaces) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const tmp = MEMBERS_FILE + '.tmp';
+    fs.writeFileSync(tmp, text, { mode: 0o600 });
+    fs.renameSync(tmp, MEMBERS_FILE);
+    return;
+  }
+  await spacesRequest('PUT', 'private/members.json', Buffer.from(text), 'application/json', { 'x-amz-acl': 'private' });
+}
+
+async function putReceipt(fileName, buffer, contentType) {
+  if (!useSpaces) {
+    fs.mkdirSync(RECEIPT_DIR, { recursive: true });
+    fs.writeFileSync(path.join(RECEIPT_DIR, fileName), buffer, { mode: 0o600 });
+    return;
+  }
+  await spacesRequest('PUT', 'private/receipts/' + fileName, buffer, contentType, { 'x-amz-acl': 'private' });
+}
+
+async function getReceipt(fileName) {
+  if (!useSpaces) return fs.readFileSync(path.join(RECEIPT_DIR, fileName));
+  return spacesRequest('GET', 'private/receipts/' + fileName);
+}
+
+async function deleteReceipt(fileName) {
+  if (!useSpaces) { try { fs.unlinkSync(path.join(RECEIPT_DIR, fileName)); } catch (e) {} return; }
+  try { await spacesRequest('DELETE', 'private/receipts/' + fileName); } catch (e) {}
+}
+
+module.exports = {
+  readContent, writeContent, putImage, useSpaces, CONTENT_FILE, DATA_DIR, UPLOAD_DIR,
+  readMembers, writeMembers, putReceipt, getReceipt, deleteReceipt
+};

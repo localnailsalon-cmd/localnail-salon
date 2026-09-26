@@ -11,6 +11,10 @@ data/.dev-password
 data/*.bak
 data/*.tmp
 
+# membership sign-ups hold customers' names and phone numbers
+data/members.json
+data/receipts/
+
 # photos uploaded through the staff area live on the server, not in git
 images/uploads/*
 !images/uploads/.gitkeep
