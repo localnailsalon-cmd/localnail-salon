@@ -140,7 +140,7 @@
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
         .toast.error { background: var(--warn); }
         .savebar-space { height: 8px; }
-        #newCount:not(:empty) { display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 4px; border-radius: 999px; background: var(--warn); color: #fff; font-size: 10px; letter-spacing: 0; }
+        .badge:not(:empty) { display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 4px; border-radius: 999px; background: var(--warn); color: #fff; font-size: 10px; letter-spacing: 0; }
         .su { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; background: #fff; }
         .su.is-new { border-color: var(--warn); }
         .su-top { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
@@ -191,7 +191,8 @@
             <button class="tab" role="tab" data-tab="photos" aria-selected="false">Salon photos</button>
             <button class="tab" role="tab" data-tab="reviews" aria-selected="false">Reviews</button>
             <button class="tab" role="tab" data-tab="membership" aria-selected="false">Membership</button>
-            <button class="tab" role="tab" data-tab="signups" aria-selected="false">Sign-ups <span id="newCount"></span></button>
+            <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings <span id="newBookings" class="badge"></span></button>
+            <button class="tab" role="tab" data-tab="signups" aria-selected="false">Sign-ups <span id="newCount" class="badge"></span></button>
         </nav>
     </header>
 
@@ -202,6 +203,7 @@
         <section class="panel" id="panel-photos" hidden></section>
         <section class="panel" id="panel-reviews" hidden></section>
         <section class="panel" id="panel-membership" hidden></section>
+        <section class="panel" id="panel-bookings" hidden></section>
         <section class="panel" id="panel-signups" hidden></section>
     </main>
 </div>
@@ -460,87 +462,124 @@
             '</div>';
     }
 
-    /* ---------- sign-ups: their own list, saved at once (not with Save changes) ---------- */
-    var members = [], memberFilter = 'all';
-    var STATUS = [
-        { value: 'new', label: 'New' }, { value: 'contacted', label: 'Contacted' },
-        { value: 'paid', label: 'Paid' }, { value: 'active', label: 'Active member' },
-        { value: 'cancelled', label: 'Cancelled' }
-    ];
-    function loadMembers() {
-        return fetch('/api/members', { cache: 'no-store' })
-            .then(function (r) { if (!r.ok) throw new Error('Could not load sign-ups'); return r.json(); })
-            .then(function (list) { members = list; renderSignups(); })
-            .catch(function (e) { toast(e.message, true); });
-    }
+    /* ---------- sign-ups and bookings: their own lists, saved at once (not with Save changes) ---------- */
     function telHref(num) {
         var d = String(num).replace(/[^\d+]/g, '');
         return 'tel:' + (d.charAt(0) === '0' ? '+855' + d.slice(1) : d);
     }
-    function renderSignups() {
-        var newOnes = members.filter(function (m) { return m.status === 'new'; }).length;
-        el('newCount').textContent = newOnes ? String(newOnes) : '';
-        var shown = members.filter(function (m) { return memberFilter === 'all' || m.status === memberFilter; });
-        el('panel-signups').innerHTML =
-            '<div class="card"><h2>Membership sign-ups</h2>' +
-                '<p class="hint">Customers who joined from the website. Changes here save straight away.</p>' +
+    function time12(v) { return (+v.slice(0, 2) % 12 || 12) + ':' + v.slice(3) + (+v.slice(0, 2) < 12 ? ' AM' : ' PM'); }
+    function todayISO() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+
+    var LISTS = {
+        members: {
+            panel: 'signups', badge: 'newCount', title: 'Membership sign-ups', noun: 'sign-up',
+            hint: 'Customers who joined from the website. Changes here save straight away.',
+            statuses: [
+                { value: 'new', label: 'New' }, { value: 'contacted', label: 'Contacted' },
+                { value: 'paid', label: 'Paid' }, { value: 'active', label: 'Active member' },
+                { value: 'cancelled', label: 'Cancelled' }
+            ],
+            sort: function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; },
+            rows: function (m) {
+                return '<dt>Plan</dt><dd>' + esc(m.planName) + (m.planPrice ? ' · ' + esc(m.planPrice) : '') + '</dd>' +
+                       '<dt>Start</dt><dd>' + esc(m.startDate) + '</dd>';
+            },
+            placeholder: 'e.g. called, paid $30 cash'
+        },
+        bookings: {
+            panel: 'bookings', badge: 'newBookings', title: 'Bookings', noun: 'booking',
+            hint: 'Appointment requests from the website, soonest first. Call to confirm, then set the status. Changes save straight away.',
+            statuses: [
+                { value: 'new', label: 'New' }, { value: 'confirmed', label: 'Confirmed' },
+                { value: 'done', label: 'Done' }, { value: 'cancelled', label: 'Cancelled' }, { value: 'no-show', label: 'No-show' }
+            ],
+            extraFilter: { value: 'upcoming', label: 'Upcoming', test: function (b) { return b.date >= todayISO() && b.status !== 'cancelled'; } },
+            sort: function (a, b) { var x = a.date + a.time, y = b.date + b.time; return x < y ? -1 : x > y ? 1 : 0; },
+            rows: function (b) {
+                return '<dt>When</dt><dd><strong>' + esc(b.date) + ' · ' + esc(time12(b.time)) + '</strong></dd>' +
+                       '<dt>Services</dt><dd>' + (b.services || []).map(function (x) { return esc(x.name) + ' <span class="su-meta">' + esc(x.price) + '</span>'; }).join('<br>') + '</dd>' +
+                       (b.total ? '<dt>Total</dt><dd>' + esc(b.total) + '</dd>' : '');
+            },
+            placeholder: 'e.g. confirmed by phone, table 2'
+        }
+    };
+    var lists = { members: [], bookings: [] }, filters = { members: 'all', bookings: 'upcoming' };
+
+    function loadList(kind) {
+        return fetch('/api/' + kind, { cache: 'no-store' })
+            .then(function (r) { if (!r.ok) throw new Error('Could not load ' + LISTS[kind].noun + 's'); return r.json(); })
+            .then(function (list) { lists[kind] = list; renderList(kind); })
+            .catch(function (e) { toast(e.message, true); });
+    }
+    function renderList(kind) {
+        var cfg = LISTS[kind], all = lists[kind].slice().sort(cfg.sort), f = filters[kind];
+        var newOnes = all.filter(function (m) { return m.status === 'new'; }).length;
+        el(cfg.badge).textContent = newOnes ? String(newOnes) : '';
+        var shown = all.filter(function (m) {
+            if (f === 'all') return true;
+            if (cfg.extraFilter && f === cfg.extraFilter.value) return cfg.extraFilter.test(m);
+            return m.status === f;
+        });
+        var chips = (cfg.extraFilter ? [{ value: cfg.extraFilter.value, label: cfg.extraFilter.label }] : [])
+            .concat([{ value: 'all', label: 'All (' + all.length + ')' }]).concat(cfg.statuses);
+        el('panel-' + cfg.panel).innerHTML =
+            '<div class="card"><h2>' + esc(cfg.title) + '</h2><p class="hint">' + esc(cfg.hint) + '</p>' +
                 '<div class="filters">' +
-                    [{ value: 'all', label: 'All (' + members.length + ')' }].concat(STATUS).map(function (s) {
-                        return '<button class="tab" data-filter="' + s.value + '" aria-selected="' + (memberFilter === s.value) + '">' + esc(s.label) + '</button>';
+                    chips.map(function (c) {
+                        return '<button class="tab" data-list="' + kind + '" data-filter="' + c.value + '" aria-selected="' + (f === c.value) + '">' + esc(c.label) + '</button>';
                     }).join('') +
-                    '<button class="btn btn-ghost btn-sm" data-reload style="margin-left:auto">Refresh</button>' +
+                    '<button class="btn btn-ghost btn-sm" data-list="' + kind + '" data-reload style="margin-left:auto">Refresh</button>' +
                 '</div>' +
-                (shown.length ? '' : '<p class="hint" style="margin-top:16px">No sign-ups here yet.</p>') +
+                (shown.length ? '' : '<p class="hint" style="margin-top:16px">Nothing here yet.</p>') +
                 shown.map(function (m) {
-                    var when = new Date(m.createdAt);
                     return '<div class="su' + (m.status === 'new' ? ' is-new' : '') + '">' +
                         '<div class="su-top"><strong>' + esc(m.name) + '</strong>' +
                             '<a href="' + esc(telHref(m.phone)) + '">' + esc(m.phone) + '</a>' +
-                            '<span class="su-meta">' + esc(when.toLocaleString()) + '</span></div>' +
-                        '<dl class="su-grid">' +
-                            '<dt>Plan</dt><dd>' + esc(m.planName) + (m.planPrice ? ' · ' + esc(m.planPrice) : '') + '</dd>' +
-                            '<dt>Start</dt><dd>' + esc(m.startDate) + '</dd>' +
+                            '<span class="su-meta">received ' + esc(new Date(m.createdAt).toLocaleString()) + '</span></div>' +
+                        '<dl class="su-grid">' + cfg.rows(m) +
                             '<dt>Payment</dt><dd>' + (m.payment === 'khqr' ? 'KHQR' + (m.receipt ? ' — screenshot below' : ' — no screenshot') : 'Pay at the salon') + '</dd>' +
                             (m.note ? '<dt>Customer note</dt><dd>' + esc(m.note) + '</dd>' : '') +
                         '</dl>' +
-                        (m.receipt ? '<a href="/api/members/' + esc(m.id) + '/receipt" target="_blank" rel="noopener"><img class="slip" src="/api/members/' + esc(m.id) + '/receipt" alt="Payment screenshot from ' + esc(m.name) + '"></a>' : '') +
-                        '<label class="field"><span>Staff note</span><input type="text" data-member-note="' + esc(m.id) + '" value="' + esc(m.staffNote || '') + '" placeholder="e.g. called, paid $30 cash"></label>' +
+                        (m.receipt ? '<a href="/api/' + kind + '/' + esc(m.id) + '/receipt" target="_blank" rel="noopener"><img class="slip" src="/api/' + kind + '/' + esc(m.id) + '/receipt" alt="Payment screenshot from ' + esc(m.name) + '"></a>' : '') +
+                        '<label class="field"><span>Staff note</span><input type="text" data-list="' + kind + '" data-rec-note="' + esc(m.id) + '" value="' + esc(m.staffNote || '') + '" placeholder="' + esc(cfg.placeholder) + '"></label>' +
                         '<div class="su-tools">' +
-                            '<select data-member-status="' + esc(m.id) + '">' + STATUS.map(function (s) {
+                            '<select data-list="' + kind + '" data-rec-status="' + esc(m.id) + '">' + cfg.statuses.map(function (s) {
                                 return '<option value="' + s.value + '"' + (s.value === m.status ? ' selected' : '') + '>' + s.label + '</option>';
                             }).join('') + '</select>' +
-                            '<button class="btn btn-danger btn-sm" data-member-delete="' + esc(m.id) + '">Delete</button>' +
+                            '<button class="btn btn-danger btn-sm" data-list="' + kind + '" data-rec-delete="' + esc(m.id) + '">Delete</button>' +
                         '</div></div>';
                 }).join('') +
             '</div>';
     }
-    function patchMember(id, change) {
-        return fetch('/api/members/' + encodeURIComponent(id), {
+    function patchRecord(kind, id, change) {
+        return fetch('/api/' + kind + '/' + encodeURIComponent(id), {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(change)
         }).then(function (r) { if (!r.ok) throw new Error('Could not save'); return r.json(); })
           .then(function (m) {
-              members = members.map(function (x) { return x.id === m.id ? m : x; });
-              toast('Saved'); renderSignups();
+              lists[kind] = lists[kind].map(function (x) { return x.id === m.id ? m : x; });
+              toast('Saved'); renderList(kind);
           })
           .catch(function (e) { toast(e.message, true); });
     }
     document.addEventListener('change', function (e) {
-        var s = e.target.getAttribute && e.target.getAttribute('data-member-status');
-        if (s) patchMember(s, { status: e.target.value });
-        var n = e.target.getAttribute && e.target.getAttribute('data-member-note');
-        if (n) patchMember(n, { staffNote: e.target.value });
+        var t = e.target, kind = t.getAttribute && t.getAttribute('data-list');
+        if (!kind) return;
+        if (t.hasAttribute('data-rec-status')) patchRecord(kind, t.getAttribute('data-rec-status'), { status: t.value });
+        if (t.hasAttribute('data-rec-note')) patchRecord(kind, t.getAttribute('data-rec-note'), { staffNote: t.value });
     });
     document.addEventListener('click', function (e) {
-        var b = e.target.closest('[data-filter],[data-reload],[data-member-delete],[data-clear]');
-        if (!b) return;
-        if (b.dataset.filter) { memberFilter = b.dataset.filter; renderSignups(); }
-        else if (b.hasAttribute('data-reload')) loadMembers();
-        else if (b.dataset.clear) { setPath(b.dataset.clear, ''); setDirty(true); renderMembership(); }
-        else if (b.dataset.memberDelete) {
-            if (!confirm('Delete this sign-up and its payment screenshot? This cannot be undone.')) return;
-            fetch('/api/members/' + encodeURIComponent(b.dataset.memberDelete), { method: 'DELETE' })
+        var b = e.target.closest('[data-clear],[data-list]');
+        if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
+        if (b.dataset.clear) { setPath(b.dataset.clear, ''); setDirty(true); renderMembership(); return; }
+        var kind = b.dataset.list;
+        if (b.dataset.filter) { filters[kind] = b.dataset.filter; renderList(kind); }
+        else if (b.hasAttribute('data-reload')) loadList(kind);
+        else if (b.dataset.recDelete) {
+            if (!confirm('Delete this ' + LISTS[kind].noun + ' and its payment screenshot? This cannot be undone.')) return;
+            var id = b.dataset.recDelete;
+            fetch('/api/' + kind + '/' + encodeURIComponent(id), { method: 'DELETE' })
                 .then(function (r) { if (!r.ok) throw new Error('Could not delete'); })
-                .then(function () { members = members.filter(function (x) { return x.id !== b.dataset.memberDelete; }); renderSignups(); toast('Deleted'); })
+                .then(function () { lists[kind] = lists[kind].filter(function (x) { return x.id !== id; }); renderList(kind); toast('Deleted'); })
                 .catch(function (err) { toast(err.message, true); });
         }
     });
@@ -714,7 +753,8 @@
                 el('loginView').hidden = true;
                 el('appView').hidden = false;
                 renderAll();
-                loadMembers();
+                loadList('bookings');
+                loadList('members');
                 setDirty(false);
                 el('status').textContent = 'Loaded';
                 el('status').className = 'status';

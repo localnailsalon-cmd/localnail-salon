@@ -28,6 +28,18 @@ Press **Save changes** and the website updates immediately — no deploy needed.
 Photos are shrunk in the browser before upload, so a large phone picture
 becomes a small WebP file.
 
+## Online booking
+
+Customers book at `/book` (every Book button on the site goes there unless a
+booking link is set in *Salon details*). They pick one or more services, a date
+up to 3 months ahead and a half-hour time inside the opening hours, then pay at
+the salon or by KHQR. It is a request: staff confirm by phone.
+
+- Requests appear in the staff area, tab *Bookings*, soonest first, with the
+  services and a total (when every price is a plain amount).
+- Set a status: New → Confirmed → Done (or Cancelled / No-show).
+- A "Book this" link on a service opens the form with that service ticked.
+
 ## Monthly membership
 
 Customers join at `/membership`: they pick a plan, enter their name, phone and
@@ -45,8 +57,8 @@ optional payment screenshot).
 
 ### Telegram alerts
 
-Every new sign-up can be sent to the salon's Telegram (with the payment
-screenshot when there is one):
+Every new booking and membership sign-up can be sent to the salon's Telegram
+(with the payment screenshot when there is one):
 
 1. In Telegram, message **@BotFather** → `/newbot` → copy the bot token.
 2. Add the bot to the salon's group (or message it directly), send any message,
@@ -59,7 +71,7 @@ screenshot when there is one):
    TELEGRAM_CHAT_ID='-1001234567890'
    ```
 
-If Telegram is not set or cannot be reached, the sign-up is still saved.
+If Telegram is not set or cannot be reached, the request is still saved.
 
 ## Password
 

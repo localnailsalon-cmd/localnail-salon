@@ -683,7 +683,7 @@
             </nav>
             <div style="display:flex;align-items:center;gap:6px">
                 <button type="button" class="lang-btn js-lang" aria-label="Change language">ខ្មែរ</button>
-                <a href="#book" class="btn btn-chrome btn-sm js-book" data-i18n="btn.book">Book</a>
+                <a href="/book" class="btn btn-chrome btn-sm js-book" data-i18n="btn.book">Book</a>
                 <button type="button" id="menuToggle" class="icon-btn menu-open" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg>
                 </button>
@@ -709,7 +709,7 @@
         </nav>
         <div style="margin-top:auto;display:grid;gap:10px">
             <button type="button" class="btn btn-ghost js-lang">ខ្មែរ</button>
-            <a href="#book" class="btn btn-chrome js-book" data-i18n="btn.bookAppt">Book an Appointment</a>
+            <a href="/book" class="btn btn-chrome js-book" data-i18n="btn.bookAppt">Book an Appointment</a>
         </div>
     </div>
 
@@ -755,7 +755,7 @@
                     <p class="eyebrow" data-i18n="film.e5">06 &mdash; Your moment</p>
                     <h2 class="display" data-i18n="film.t5">Treat yourself.<br><span class="acc">You deserve it.</span></h2>
                     <div class="actions">
-                        <a href="#book" class="btn btn-chrome js-book" data-i18n="btn.bookSeat">Book your seat</a>
+                        <a href="/book" class="btn btn-chrome js-book" data-i18n="btn.bookSeat">Book your seat</a>
                         <a href="#services" class="btn btn-ghost" data-i18n="btn.viewMenu">View menu</a>
                     </div>
                 </div>
@@ -914,7 +914,7 @@
                 <h2 id="book-title" class="display mb-6" data-i18n="book.title">Ready for your<br><span class="acc">next set?</span></h2>
                 <p class="lede mb-9 max-w-xl" data-i18n="book.body">Choose your service, pick a time, and let us take care of the details.</p>
                 <div style="display:flex;flex-wrap:wrap;gap:10px">
-                    <a id="bookingBtn" href="#contact" class="btn btn-chrome" data-i18n="btn.bookAppt">Book an Appointment</a>
+                    <a id="bookingBtn" href="/book" class="btn btn-chrome" data-i18n="btn.bookAppt">Book an Appointment</a>
                     <a href="/membership" class="btn btn-ghost" data-i18n="btn.member">Join monthly membership</a>
                 </div>
             </div>
@@ -1102,7 +1102,7 @@
                     (i === top ? '<span class="m-tag">' + esc(catTitle(cat)) + ' &middot; ' + esc(t('premium')) + '</span>' : '') +
                     '<div class="m-top"><h3 class="m-name">' + esc(s.name) + '</h3><span class="m-price">' + esc(s.price) + '</span></div>' +
                     (s.desc ? '<p class="m-desc">' + esc(s.desc) + '</p>' : '') +
-                    '<a class="m-book js-book" href="' + esc(bookHref()) + '">' + esc(t('bookThis')) + ARROW + '</a>' +
+                    '<a class="m-book' + (SITE.bookingUrl ? ' js-book' : '') + '" href="' + esc(bookHref(priceId(cat, s))) + '">' + esc(t('bookThis')) + ARROW + '</a>' +
                 '</article>';
             }).join('');
         }
@@ -1165,7 +1165,7 @@
             }).join('');
         }
 
-        function bookHref() { return SITE.bookingUrl || '#book'; }
+        function bookHref(id) { return SITE.bookingUrl || ('/book' + (id ? '?s=' + encodeURIComponent(id) : '')); }
 
         function renderContent() {
             SITE = DATA.site;

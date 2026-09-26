@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment — LocalNail Salon</title>
+    <meta name="description" content="Book nails, pedicure, hair or waxing at LocalNail Salon in Siem Reap: choose services and a time, and we confirm by phone.">
+    <link rel="canonical" href="https://localnailsalon.tech/book">
+    <meta name="theme-color" content="#0E0F11">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --night: #0E0F11; --night-card: #1B1D21; --night-line: rgba(255, 255, 255, .1);
+            --night-muted: #A3A9B1; --ink: #16181B; --cream: #F8F9FA; --warn: #E0806F; --ok: #7FD1A6;
+            --chrome: linear-gradient(180deg, #FFFFFF 0%, #D8DCE2 22%, #99A0A8 50%, #C7CCD3 72%, #F5F7F9 100%);
+            --chrome-light: linear-gradient(180deg, #FFFFFF 0%, #EEF0F3 30%, #AEB5BD 58%, #E6E9EC 80%, #FFFFFF 100%);
+            color-scheme: dark;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            margin: 0; background: var(--night); color: #E7E9EC;
+            font-family: 'Inter', 'Kantumruy Pro', sans-serif; -webkit-font-smoothing: antialiased;
+        }
+        html[lang="km"] body { font-family: 'Kantumruy Pro', 'Inter', sans-serif; }
+        a { color: inherit; }
+        :focus-visible { outline: 2px solid #C7CCD3; outline-offset: 3px; border-radius: 6px; }
+        .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+        header {
+            position: sticky; top: 0; z-index: 10; height: 60px;
+            background: rgba(14, 15, 17, .9); border-bottom: 1px solid var(--night-line);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+        }
+        header .wrap { max-width: 1100px; height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .logo { font-family: 'Playfair Display', 'Bodoni Moda', serif; color: #fff; text-decoration: none; font-size: 1.3rem; white-space: nowrap; }
+        .logo span { font-family: 'Allura', cursive; font-size: 1.34em; margin-left: .18em; background: var(--chrome-light); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .pill {
+            height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .22);
+            color: #fff; background: transparent; font: 600 12px/1 'Kantumruy Pro', 'Inter', sans-serif;
+            text-decoration: none; display: inline-flex; align-items: center; cursor: pointer;
+        }
+
+        .eyebrow { font-size: 11px; letter-spacing: .28em; text-transform: uppercase; font-weight: 600; color: var(--night-muted); display: flex; align-items: center; gap: 10px; margin: 0 0 16px; }
+        .eyebrow::before { content: ''; width: 22px; height: 1px; background: currentColor; }
+        .display {
+            font-family: 'Bodoni Moda', Georgia, serif; font-weight: 500; text-transform: uppercase; color: #fff;
+            font-size: clamp(2.4rem, 11vw, 4.6rem); line-height: 1; margin: 0;
+        }
+        .acc {
+            font-family: 'Allura', cursive; font-weight: 400; text-transform: none; font-size: 1.28em; line-height: .8;
+            display: inline-block; padding: 0 .08em .16em; margin-left: .7em; white-space: nowrap;
+            background: var(--chrome-light); -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        html[lang="km"] .eyebrow { letter-spacing: .03em; text-transform: none; font-size: 13px; }
+        html[lang="km"] .display { font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; text-transform: none; font-size: clamp(2rem, 9vw, 3.6rem); line-height: 1.3; }
+        html[lang="km"] .acc { font-family: 'Kantumruy Pro', sans-serif; font-size: 1em; line-height: 1.3; margin-left: 0; font-weight: 400; }
+        .lede { color: var(--night-muted); font-size: 1.05rem; line-height: 1.75; margin: 20px 0 0; max-width: 52ch; }
+        html[lang="km"] .lede { line-height: 1.9; }
+
+        .hero { padding: 56px 0 36px; }
+        .step { margin-top: 38px; }
+        .step h2 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; font-weight: 600; font-size: 1.1rem; color: #fff; }
+        .step h2 b { font-family: 'Bodoni Moda', serif; font-style: italic; font-weight: 400; color: var(--night-muted); font-size: 1.2rem; }
+
+        /* plans */
+        .plans { display: grid; gap: 12px; }
+        @media (min-width: 720px) { .plans { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); } }
+        .plan { position: relative; display: block; cursor: pointer; }
+        .plan input { position: absolute; opacity: 0; pointer-events: none; }
+        .plan .card, .opt .card, .plan .top { display: block; }
+        .plan .top { display: flex; }
+        .plan .card {
+            height: 100%; border-radius: 18px; padding: 18px; background: var(--night-card);
+            border: 1px solid var(--night-line); transition: border-color .2s, background .2s, transform .2s;
+        }
+        .plan:hover .card { border-color: rgba(255, 255, 255, .24); }
+        .plan input:checked + .card { border-color: #fff; background: linear-gradient(160deg, #272A2F, #1B1D21 65%); }
+        .plan input:focus-visible + .card { outline: 2px solid #C7CCD3; outline-offset: 3px; }
+        .plan .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+        .plan h3 { margin: 0; color: #fff; font-size: 1.05rem; font-weight: 600; }
+        .price { font-family: 'Bodoni Moda', serif; font-weight: 600; font-size: 1.5rem; line-height: 1; white-space: nowrap; background: var(--chrome-light); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .price.ask { font-family: 'Inter', 'Kantumruy Pro', sans-serif; font-size: .8rem; font-weight: 600; -webkit-text-fill-color: var(--night-muted); color: var(--night-muted); }
+        .period { color: var(--night-muted); font-size: 12px; margin-top: 4px; }
+        .plan ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 7px; }
+        .plan li { color: #D5D9DE; font-size: .92rem; line-height: 1.45; padding-left: 20px; position: relative; }
+        .plan li::before { content: ''; position: absolute; left: 2px; top: .5em; width: 9px; height: 5px; border-left: 1.5px solid #C7CCD3; border-bottom: 1.5px solid #C7CCD3; transform: rotate(-45deg); }
+        .tick { position: absolute; top: 14px; right: 14px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--night-line); }
+        .plan input:checked + .card .tick { background: var(--chrome); border-color: transparent; }
+        .plan input:checked + .card .tick::after { content: ''; position: absolute; left: 7px; top: 5px; width: 6px; height: 10px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
+        .plan .top { padding-right: 30px; }
+
+        /* fields */
+        .fields { display: grid; gap: 14px; }
+        @media (min-width: 640px) { .fields.two { grid-template-columns: 1fr 1fr; } }
+        label.f { display: block; }
+        label.f > span { display: block; font-size: 12px; font-weight: 600; color: var(--night-muted); margin-bottom: 7px; letter-spacing: .02em; }
+        input[type=text], input[type=tel], input[type=date], textarea {
+            width: 100%; font: inherit; font-size: 16px; color: #fff; background: #15171A;
+            border: 1px solid rgba(255, 255, 255, .16); border-radius: 12px; padding: 13px 14px; min-height: 50px;
+        }
+        textarea { min-height: 84px; resize: vertical; }
+        input:focus, textarea:focus { outline: none; border-color: #fff; }
+        .err { color: var(--warn); font-size: 13px; margin-top: 6px; }
+        .field-bad input { border-color: var(--warn); }
+
+        /* payment */
+        .pay { display: grid; gap: 10px; }
+        @media (min-width: 640px) { .pay { grid-template-columns: 1fr 1fr; } }
+        .opt { position: relative; cursor: pointer; }
+        .opt input { position: absolute; opacity: 0; pointer-events: none; }
+        .opt .card { border-radius: 14px; padding: 14px 16px 14px 48px; background: var(--night-card); border: 1px solid var(--night-line); position: relative; min-height: 64px; }
+        .opt .card::before { content: ''; position: absolute; left: 16px; top: 18px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #8C939B; }
+        .opt input:checked + .card { border-color: #fff; }
+        .opt input:checked + .card::before { border: 6px solid #fff; }
+        .opt input:focus-visible + .card { outline: 2px solid #C7CCD3; outline-offset: 3px; }
+        .opt b { display: block; color: #fff; font-weight: 600; }
+        .opt small { color: var(--night-muted); font-size: 12.5px; }
+        .qr-box { margin-top: 14px; border-radius: 18px; background: #fff; color: var(--ink); padding: 18px; display: grid; gap: 14px; }
+        @media (min-width: 640px) { .qr-box { grid-template-columns: 220px 1fr; align-items: center; } }
+        .qr-box img { width: 100%; max-width: 240px; height: auto; display: block; margin: 0 auto; border-radius: 10px; }
+        .qr-box h3 { margin: 0 0 6px; font-size: 1rem; }
+        .qr-box p { margin: 0 0 8px; color: #4A5058; font-size: .92rem; line-height: 1.6; }
+        .qr-amount { font-family: 'Bodoni Moda', serif; font-weight: 600; font-size: 1.6rem; color: var(--ink); }
+        .upload {
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; cursor: pointer;
+            border: 1px dashed #9AA1A9; border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--ink);
+        }
+        .upload input { display: none; }
+        .slip-preview { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; color: #4A5058; }
+        .slip-preview img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
+        .linkish { background: none; border: 0; color: #4A5058; text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0; }
+
+        .submit {
+            margin-top: 34px; width: 100%; min-height: 56px; border: 0; border-radius: 999px; cursor: pointer;
+            background: var(--chrome); color: var(--ink); font: 700 13px/1 'Inter', 'Kantumruy Pro', sans-serif;
+            letter-spacing: .16em; text-transform: uppercase; box-shadow: inset 0 1px 0 #fff;
+        }
+        html[lang="km"] .submit { letter-spacing: .02em; text-transform: none; font-size: 15px; }
+        .submit[disabled] { opacity: .6; cursor: progress; }
+        .fine { color: var(--night-muted); font-size: 12.5px; line-height: 1.6; margin-top: 14px; text-align: center; }
+        .form-err { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(224, 128, 111, .12); border: 1px solid rgba(224, 128, 111, .4); color: #F2B8AD; font-size: 14px; }
+
+        .done { text-align: center; padding: 60px 0 90px; }
+        .done .mark { width: 72px; height: 72px; margin: 0 auto 26px; border-radius: 50%; background: var(--chrome); position: relative; }
+        .done .mark::after { content: ''; position: absolute; left: 27px; top: 17px; width: 14px; height: 28px; border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg); }
+        .done .lede { margin-left: auto; margin-right: auto; }
+        .ghost { display: inline-flex; margin-top: 28px; min-height: 48px; align-items: center; padding: 0 24px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .35); text-decoration: none; color: #fff; font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+        html[lang="km"] .ghost { letter-spacing: 0; text-transform: none; font-size: 14px; }
+        footer { border-top: 1px solid var(--night-line); padding: 26px 0 40px; color: var(--night-muted); font-size: 13px; }
+        .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+        /* ---- booking: service picker, summary, time slots ---- */
+        .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px 14px; padding: 2px 20px 4px; }
+        .chips::-webkit-scrollbar { display: none; }
+        .chip { flex: none; height: 38px; padding: 0 15px; border-radius: 999px; cursor: pointer; border: 1px solid var(--night-line);
+                background: var(--night-card); color: var(--night-muted); font: 600 12px/1 'Inter', 'Kantumruy Pro', sans-serif; }
+        html[lang="km"] .chip { font-size: 13px; }
+        .chip[aria-selected="true"] { background: var(--chrome); color: var(--ink); border-color: transparent; }
+        .chip i { font-style: normal; display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 4px; border-radius: 9px; background: #fff; color: var(--ink); font-size: 10px; }
+        .chip[aria-selected="true"] i { background: var(--ink); color: #fff; }
+        .svc-list { display: grid; gap: 8px; }
+        .svc { display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: start; cursor: pointer;
+               padding: 14px; border-radius: 14px; background: var(--night-card); border: 1px solid var(--night-line); transition: border-color .2s; }
+        .svc input { position: absolute; opacity: 0; pointer-events: none; }
+        .svc .box { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid #8C939B; margin-top: 1px; position: relative; }
+        .svc input:checked ~ .box { background: var(--chrome); border-color: transparent; }
+        .svc input:checked ~ .box::after { content: ''; position: absolute; left: 7px; top: 3px; width: 6px; height: 11px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
+        .svc:has(input:checked) { border-color: #fff; }
+        .svc input:focus-visible ~ .box { outline: 2px solid #C7CCD3; outline-offset: 3px; }
+        .svc-main b { display: block; color: #fff; font-weight: 600; }
+        .svc-main small { display: block; color: var(--night-muted); font-size: 13px; line-height: 1.5; margin-top: 3px; }
+        .svc-price { font-family: 'Bodoni Moda', serif; font-weight: 600; font-size: 1.15rem; white-space: nowrap; background: var(--chrome-light); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .summary { margin-top: 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.3);
+                   display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+        .summary b { color: #fff; display: block; }
+        .summary small { color: var(--night-muted); font-size: 12.5px; display: block; }
+        .sum-price { text-align: right; }
+        .sum-price .price { font-size: 1.6rem; }
+        .mini { color: var(--night-muted); font-size: 12px; font-weight: 600; margin: 16px 0 8px; }
+        .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+        .slot { position: relative; cursor: pointer; }
+        .slot input { position: absolute; opacity: 0; pointer-events: none; }
+        .slot span { display: grid; place-items: center; height: 44px; border-radius: 12px; background: var(--night-card); border: 1px solid var(--night-line); color: #E7E9EC; font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+        .slot input:checked + span { background: var(--chrome); color: var(--ink); border-color: transparent; }
+        .slot input:focus-visible + span { outline: 2px solid #C7CCD3; outline-offset: 3px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="wrap">
+            <a class="logo" href="/" aria-label="LocalNail Salon — home">LocalNail<span>Salon</span></a>
+            <div style="display:flex;gap:6px">
+                <button type="button" class="pill" id="langBtn">ខ្មែរ</button>
+                <a class="pill" href="/" data-i="back">Back to site</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <section class="hero">
+            <p class="eyebrow" data-i="eyebrow">Book an appointment</p>
+            <h1 class="display" data-i="title">Book your<br><span class="acc">next set.</span></h1>
+            <p class="lede" data-i="intro">Choose your services and a time. We call or message you to confirm before your visit.</p>
+        </section>
+
+        <form id="form" novalidate>
+            <div class="step">
+                <h2><b>01</b><span data-i="s1">Choose services</span></h2>
+                <div class="chips" id="chips" role="tablist" aria-label="Service categories"></div>
+                <div class="svc-list" id="svcList"></div>
+                <div class="summary" id="summary" hidden></div>
+                <p class="err" id="err-services" hidden></p>
+            </div>
+
+            <div class="step">
+                <h2><b>02</b><span data-i="s2">Date &amp; time</span></h2>
+                <div class="fields">
+                    <label class="f" id="f-date"><span data-i="date">Date</span>
+                        <input type="date" id="date" name="date" required>
+                        <p class="err" hidden></p>
+                    </label>
+                </div>
+                <p class="mini" data-i="timeL">Time</p>
+                <div class="slots" id="slots" role="radiogroup" aria-label="Time"></div>
+                <p class="err" id="err-time" hidden></p>
+            </div>
+
+            <div class="step">
+                <h2><b>03</b><span data-i="s3">Your details</span></h2>
+                <div class="fields two">
+                    <label class="f" id="f-name"><span data-i="name">Full name</span>
+                        <input type="text" id="name" name="name" autocomplete="name" maxlength="80" required>
+                        <p class="err" hidden></p>
+                    </label>
+                    <label class="f" id="f-phone"><span data-i="phone">Phone number</span>
+                        <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="012 345 678" required>
+                        <p class="err" hidden></p>
+                    </label>
+                </div>
+                <label class="f" style="margin-top:14px"><span data-i="note">Note (optional)</span>
+                    <input type="text" id="note" name="note" maxlength="300" data-ph="notePh" placeholder="e.g. nail art idea, 2 people">
+                </label>
+                <div class="hp" aria-hidden="true"><label>Website <input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
+            </div>
+
+            <div class="step">
+                <h2><b>04</b><span data-i="s4">Payment</span></h2>
+                <div class="pay">
+                    <label class="opt"><input type="radio" name="payment" value="salon" checked>
+                        <span class="card"><b data-i="paySalon">Pay at the salon</b><small data-i="paySalonD">Pay after your appointment.</small></span>
+                    </label>
+                    <label class="opt" id="khqrOpt"><input type="radio" name="payment" value="khqr">
+                        <span class="card"><b data-i="payQr">Pay now with KHQR</b><small data-i="payQrD">Scan with ABA or any Bakong bank app.</small></span>
+                    </label>
+                </div>
+                <div class="qr-box" id="qrBox" hidden>
+                    <img id="qrImg" alt="KHQR code for paying LocalNail Salon">
+                    <div>
+                        <h3 id="qrName"></h3>
+                        <p data-i="qrHow">Open your bank app, scan the code and pay the amount below. Then add a screenshot of the payment so we can match it.</p>
+                        <div class="qr-amount" id="qrAmount"></div>
+                        <label class="upload"><input type="file" id="slip" accept="image/*"><span data-i="slip">Add payment screenshot</span></label>
+                        <div class="slip-preview" id="slipPreview" hidden><img id="slipImg" alt=""><span data-i="slipOk">Screenshot added</span> <button type="button" class="linkish" id="slipRemove" data-i="remove">Remove</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-err" id="formErr" hidden></div>
+            <button class="submit" type="submit" id="submitBtn" data-i="submit">Send booking request</button>
+            <p class="fine" data-i="fine">Your time is held once we confirm. We only use your name and number for this booking.</p>
+        </form>
+
+        <section class="done" id="done" hidden>
+            <div class="mark" aria-hidden="true"></div>
+            <h1 class="display" data-i="doneT">Request sent<br><span class="acc">see you soon.</span></h1>
+            <p class="lede" id="doneText"></p>
+            <a class="ghost" href="/" data-i="back">Back to site</a>
+        </section>
+    </main>
+
+    <footer><div class="wrap">&copy; 2026 LocalNail Salon &middot; <span id="footAddr"></span></div></footer>
+
+    <script src="salon-data.js"></script>
+    <script>
+    (function () {
+        'use strict';
+        var DATA = window.SALON;
+        var KM = {
+            back: 'ត្រឡប់ទៅទំព័រដើម', eyebrow: 'កក់ពេលណាត់',
+            title: 'កក់<br><span class="acc">ម៉ូដថ្មីរបស់អ្នក</span>',
+            intro: 'ជ្រើសរើសសេវាកម្ម និងម៉ោង។ យើងនឹងហៅទូរស័ព្ទ ឬផ្ញើសារបញ្ជាក់ មុនពេលអ្នកមក។',
+            s1: 'ជ្រើសរើសសេវាកម្ម', s2: 'ថ្ងៃ និងម៉ោង', s3: 'ព័ត៌មានរបស់អ្នក', s4: 'ការបង់ប្រាក់',
+            date: 'ថ្ងៃ', timeL: 'ម៉ោង', name: 'ឈ្មោះពេញ', phone: 'លេខទូរស័ព្ទ', note: 'កំណត់សម្គាល់ (មិនចាំបាច់)',
+            paySalon: 'បង់នៅហាង', paySalonD: 'បង់ក្រោយពេលធ្វើរួច។',
+            payQr: 'បង់ឥឡូវតាម KHQR', payQrD: 'ស្កេនជាមួយ ABA ឬកម្មវិធីធនាគារ Bakong ណាមួយ។',
+            qrHow: 'បើកកម្មវិធីធនាគារ ស្កេនកូដ ហើយបង់ចំនួនខាងក្រោម។ បន្ទាប់មកបញ្ចូលរូបថតអេក្រង់នៃការបង់ប្រាក់ ដើម្បីឲ្យយើងផ្ទៀងផ្ទាត់។',
+            slip: 'បញ្ចូលរូបថតការបង់ប្រាក់', slipOk: 'បានបញ្ចូលរូបថតរួច', remove: 'លុប',
+            submit: 'ផ្ញើសំណើរកក់', fine: 'ម៉ោងរបស់អ្នកត្រូវបានរក្សាទុក ពេលយើងបញ្ជាក់។ យើងប្រើឈ្មោះ និងលេខទូរស័ព្ទសម្រាប់ការកក់នេះប៉ុណ្ណោះ។',
+            doneT: 'បានផ្ញើសំណើរ<br><span class="acc">ជួបគ្នាឆាប់ៗ</span>'
+        };
+        var PH = { notePh: { en: 'e.g. nail art idea, 2 people', km: 'ឧ. គំនិតម៉ូដក្រចក, មក ២ នាក់' } };
+        var CAT_KM = { manicure: 'ក្រចកដៃ', pedicure: 'ក្រចកជើង', hair: 'សក់', waxing: 'វ៉ាក់រោម', removal: 'ដកជែល / ក្រចកបន្ត', addons: 'បន្ថែម / ពិសេស' };
+        var T = {
+            en: {
+                selected: function (n) { return n + (n === 1 ? ' service' : ' services'); },
+                total: 'Total', from: 'from', atSalon: 'final price at the salon',
+                closed: 'No times left today. Choose another date.',
+                errServices: 'Choose at least one service.', errDate: 'Choose a date from today up to 3 months ahead.',
+                errTime: 'Choose a time.', errName: 'Enter your name.', errPhone: 'Enter a phone number we can call.',
+                errServer: 'Something went wrong on our side. Please try again, or call the salon.',
+                errNet: 'No connection. Check your internet and try again.', errMany: 'Too many requests from this device. Please call the salon.',
+                errSlip: 'That screenshot could not be used. Try another image.', sending: 'Sending…',
+                done: function (n, p, d, t) { return 'Thanks, ' + n + '. You asked for ' + d + ' at ' + t + '. We will call or message ' + p + ' to confirm.'; }
+            },
+            km: {
+                selected: function (n) { return 'សេវាកម្ម ' + n; },
+                total: 'សរុប', from: 'ចាប់ពី', atSalon: 'តម្លៃចុងក្រោយនៅហាង',
+                closed: 'ថ្ងៃនេះអស់ម៉ោងហើយ។ សូមជ្រើសថ្ងៃផ្សេង។',
+                errServices: 'សូមជ្រើសយ៉ាងហោចណាស់សេវាកម្មមួយ។', errDate: 'សូមជ្រើសថ្ងៃ ពីថ្ងៃនេះ ដល់ ៣ ខែខាងមុខ។',
+                errTime: 'សូមជ្រើសម៉ោង។', errName: 'សូមបញ្ចូលឈ្មោះ។', errPhone: 'សូមបញ្ចូលលេខទូរស័ព្ទដែលអាចទាក់ទងបាន។',
+                errServer: 'មានបញ្ហាពីខាងយើង។ សូមព្យាយាមម្តងទៀត ឬហៅទូរស័ព្ទមកហាង។',
+                errNet: 'គ្មានអ៊ីនធឺណិត។ សូមពិនិត្យការតភ្ជាប់ ហើយព្យាយាមម្តងទៀត។', errMany: 'ស្នើច្រើនដងពេកពីឧបករណ៍នេះ។ សូមហៅទូរស័ព្ទមកហាង។',
+                errSlip: 'មិនអាចប្រើរូបថតនេះបានទេ។ សូមសាកល្បងរូបផ្សេង។', sending: 'កំពុងផ្ញើ…',
+                done: function (n, p, d, t) { return 'អរគុណ ' + n + '។ អ្នកបានស្នើកក់ថ្ងៃ ' + d + ' ម៉ោង ' + t + '។ យើងនឹងហៅ ឬផ្ញើសារទៅលេខ ' + p + ' ដើម្បីបញ្ជាក់។'; }
+            }
+        };
+        var LANG = 'en';
+        try { if (localStorage.getItem('ln-lang') === 'km') LANG = 'km'; } catch (e) {}
+        var ORIG = new Map();
+        function t(k) { return T[LANG][k]; }
+        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function isSet(v) { return v && String(v).trim() && String(v).indexOf('[') !== 0; }
+        function $(id) { return document.getElementById(id); }
+        function priceId(cat, item) {
+            return 'price-' + cat.id + '-' + String(item.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        }
+
+        function applyLang(save) {
+            document.documentElement.lang = LANG;
+            document.querySelectorAll('[data-i]').forEach(function (el) {
+                if (!ORIG.has(el)) ORIG.set(el, el.innerHTML);
+                el.innerHTML = LANG === 'km' && KM[el.dataset.i] ? KM[el.dataset.i] : ORIG.get(el);
+            });
+            document.querySelectorAll('[data-ph]').forEach(function (el) { el.placeholder = PH[el.dataset.ph][LANG]; });
+            $('langBtn').textContent = LANG === 'km' ? 'English' : 'ខ្មែរ';
+            if (save) { try { localStorage.setItem('ln-lang', LANG); } catch (e) {} }
+            if (ready) { renderChips(); renderServices(); renderSlots(); updateSummary(); }
+            clearErrors();
+        }
+        $('langBtn').addEventListener('click', function () { LANG = LANG === 'km' ? 'en' : 'km'; applyLang(true); });
+
+        /* ---- services: pick any number, across categories ---- */
+        var ready = false, activeCat = null, picked = {};   // priceId -> {name, price}
+        function cats() { return DATA.services || []; }
+        function renderChips() {
+            $('chips').innerHTML = cats().map(function (c) {
+                var n = c.items.filter(function (i) { return picked[priceId(c, i)]; }).length;
+                return '<button type="button" class="chip" role="tab" data-cat="' + esc(c.id) + '" aria-selected="' + (c.id === activeCat) + '">' +
+                    esc((LANG === 'km' && CAT_KM[c.id]) || c.title) + (n ? ' <i>' + n + '</i>' : '') + '</button>';
+            }).join('');
+        }
+        function renderServices() {
+            var cat = cats().filter(function (c) { return c.id === activeCat; })[0];
+            if (!cat) return;
+            $('svcList').innerHTML = cat.items.map(function (item) {
+                var id = priceId(cat, item);
+                return '<label class="svc"><input type="checkbox" value="' + esc(id) + '"' + (picked[id] ? ' checked' : '') + '>' +
+                    '<span class="box" aria-hidden="true"></span>' +
+                    '<span class="svc-main"><b>' + esc(item.name) + '</b>' + (item.desc ? '<small>' + esc(item.desc) + '</small>' : '') + '</span>' +
+                    '<span class="svc-price">' + esc(item.price) + '</span></label>';
+            }).join('');
+        }
+        $('chips').addEventListener('click', function (e) {
+            var chip = e.target.closest('.chip');
+            if (!chip) return;
+            activeCat = chip.dataset.cat;
+            renderChips(); renderServices();
+        });
+        $('svcList').addEventListener('change', function (e) {
+            var box = e.target;
+            if (box.type !== 'checkbox') return;
+            if (box.checked) {
+                cats().forEach(function (c) { c.items.forEach(function (i) { if (priceId(c, i) === box.value) picked[box.value] = { name: i.name, price: i.price }; }); });
+            } else delete picked[box.value];
+            showErr('services', '');
+            renderChips(); updateSummary();
+        });
+        // a total only when every price is a plain amount ("$35+" and "$1 / nail" depend on the visit)
+        function totals() {
+            var keys = Object.keys(picked), sum = 0, exact = true;
+            keys.forEach(function (k) {
+                var p = picked[k].price, m = /^\$(\d+(?:\.\d+)?)/.exec(p);
+                if (m) sum += parseFloat(m[1]);
+                if (!/^\$\d+(\.\d+)?$/.test(p)) exact = false;
+            });
+            return { count: keys.length, sum: Math.round(sum * 100) / 100, exact: exact };
+        }
+        function updateSummary() {
+            var tt = totals();
+            $('summary').hidden = !tt.count;
+            if (!tt.count) { updateQr(); return; }
+            var names = Object.keys(picked).map(function (k) { return picked[k].name; }).join(' · ');
+            $('summary').innerHTML = '<div><b>' + esc(t('selected')(tt.count)) + '</b><small>' + esc(names) + '</small></div>' +
+                '<div class="sum-price">' + (tt.exact ? '<span class="price">$' + tt.sum + '</span>' :
+                    '<small>' + esc(t('from')) + '</small> <span class="price">$' + tt.sum + '</span><small>' + esc(t('atSalon')) + '</small>') + '</div>';
+            updateQr();
+        }
+
+        /* ---- date and time: half-hour slots inside opening hours ---- */
+        function parseHours(text) {
+            var m = String(text || '').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?\s*[–-]\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+            if (!m) return [10 * 60, 22 * 60];
+            function mins(h, mm, ap) {
+                h = +h % 12 + (/pm/i.test(ap || '') ? 12 : 0);
+                if (!ap && +h < 7) h += 12;
+                return h * 60 + (+mm || 0);
+            }
+            return [mins(m[1], m[2], m[3]), mins(m[4], m[5], m[6] || m[3])];
+        }
+        function todayISO() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+        function addDays(iso, n) { var d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+        var pickedTime = '';
+        function renderSlots() {
+            var h = parseHours(DATA.site.hours), open = h[0], close = h[1] <= h[0] ? h[1] + 24 * 60 : h[1];
+            var last = close - 60, date = $('date').value, out = [];
+            var now = new Date(), nowMins = now.getHours() * 60 + now.getMinutes();
+            for (var m = open; m <= last; m += 30) {
+                if (date === todayISO() && m < nowMins + 30) continue;
+                var hh = Math.floor(m / 60) % 24, mm = m % 60;
+                out.push(('0' + hh).slice(-2) + ':' + ('0' + mm).slice(-2));
+            }
+            if (out.indexOf(pickedTime) < 0) pickedTime = '';
+            $('slots').innerHTML = out.length ? out.map(function (v) {
+                var h12 = (+v.slice(0, 2) % 12 || 12) + ':' + v.slice(3) + (+v.slice(0, 2) < 12 ? ' AM' : ' PM');
+                return '<label class="slot"><input type="radio" name="time" value="' + v + '"' + (v === pickedTime ? ' checked' : '') + '><span>' + h12 + '</span></label>';
+            }).join('') : '<p class="mini">' + esc(t('closed')) + '</p>';
+        }
+        $('date').addEventListener('change', function () { showErr('date', ''); renderSlots(); });
+        $('slots').addEventListener('change', function (e) { pickedTime = e.target.value; showErr('time', ''); });
+
+        /* ---- payment ---- */
+        var M = {};
+        function payment() { return (document.querySelector('input[name="payment"]:checked') || {}).value; }
+        function updateQr() {
+            var hasQr = isSet(M.khqrImage);
+            $('khqrOpt').hidden = !hasQr;
+            if (!hasQr && payment() === 'khqr') document.querySelector('input[value="salon"]').checked = true;
+            var show = hasQr && payment() === 'khqr';
+            $('qrBox').hidden = !show;
+            if (!show) return;
+            $('qrImg').src = M.khqrImage;
+            $('qrName').textContent = isSet(M.khqrName) ? M.khqrName : 'LocalNail Salon';
+            var tt = totals();
+            $('qrAmount').textContent = tt.count && tt.exact ? '$' + tt.sum : '';
+        }
+        document.querySelectorAll('input[name="payment"]').forEach(function (r) { r.addEventListener('change', updateQr); });
+        var slipData = '';
+        $('slip').addEventListener('change', function () {
+            var file = this.files && this.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                var img = new Image();
+                img.onload = function () {
+                    var s = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+                    c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                    slipData = c.toDataURL('image/jpeg', 0.85);
+                    $('slipImg').src = slipData; $('slipPreview').hidden = false;
+                };
+                img.onerror = function () { showForm(t('errSlip')); };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        $('slipRemove').addEventListener('click', function () { slipData = ''; $('slip').value = ''; $('slipPreview').hidden = true; });
+
+        /* ---- errors ---- */
+        function showErr(field, msg) {
+            var box = $('err-' + field);
+            if (box) { box.textContent = msg; box.hidden = !msg; return; }
+            var wrap = $('f-' + field), p = wrap.querySelector('.err');
+            p.textContent = msg; p.hidden = !msg; wrap.classList.toggle('field-bad', !!msg);
+        }
+        function showForm(msg) { $('formErr').textContent = msg; $('formErr').hidden = !msg; }
+        function clearErrors() { ['services', 'date', 'time', 'name', 'phone'].forEach(function (f) { showErr(f, ''); }); showForm(''); }
+        ['name', 'phone'].forEach(function (f) { $(f).addEventListener('input', function () { showErr(f, ''); }); });
+
+        $('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearErrors();
+            var name = $('name').value.trim(), phone = $('phone').value.trim(), date = $('date').value;
+            var first = null;
+            function bad(f, msg) { showErr(f, msg); first = first || f; }
+            if (!Object.keys(picked).length) bad('services', t('errServices'));
+            if (!date || date < todayISO() || date > addDays(todayISO(), 90)) bad('date', t('errDate'));
+            if (!pickedTime) bad('time', t('errTime'));
+            if (name.length < 2) bad('name', t('errName'));
+            if (!/^\+?[\d\s-]{6,20}$/.test(phone)) bad('phone', t('errPhone'));
+            if (first) {
+                var target = { services: 'chips', time: 'slots' }[first] || first;
+                $(target).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            var btn = $('submitBtn'), label = btn.innerHTML;
+            btn.disabled = true; btn.textContent = t('sending');
+            fetch('/api/bookings', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    services: Object.keys(picked), date: date, time: pickedTime, name: name, phone: phone,
+                    note: $('note').value.trim(), payment: payment(), receipt: payment() === 'khqr' ? slipData : '',
+                    website: $('website').value
+                })
+            }).then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+              .then(function (res) {
+                  btn.disabled = false; btn.innerHTML = label;
+                  if (res.status === 200) {
+                      var shown = document.querySelector('input[name="time"]:checked + span');
+                      $('doneText').textContent = t('done')(name, phone, date, shown ? shown.textContent : pickedTime);
+                      $('form').hidden = true; document.querySelector('.hero').hidden = true; $('done').hidden = false;
+                      window.scrollTo(0, 0);
+                      return;
+                  }
+                  var code = res.body && res.body.error;
+                  if (res.status === 429) return showForm(t('errMany'));
+                  var map = { services: 'errServices', date: 'errDate', time: 'errTime', name: 'errName', phone: 'errPhone' };
+                  if (map[code]) return bad(code, t(map[code]));
+                  if (code === 'receipt') return showForm(t('errSlip'));
+                  showForm(t('errServer'));
+              })
+              .catch(function () { btn.disabled = false; btn.innerHTML = label; showForm(t('errNet')); });
+        });
+
+        $('date').min = todayISO();
+        $('date').max = addDays(todayISO(), 90);
+        $('date').value = todayISO();
+
+        fetch('/api/content', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d && d.site) DATA = d; })
+            .catch(function () {})
+            .then(function () {
+                M = DATA.membership || {};
+                $('footAddr').textContent = DATA.site.address || '';
+                activeCat = cats()[0] && cats()[0].id;
+                // "Book this" on a service card arrives as ?s=price-…
+                var pre = new URLSearchParams(location.search).get('s');
+                if (pre) cats().forEach(function (c) { c.items.forEach(function (i) {
+                    if (priceId(c, i) === pre) { picked[pre] = { name: i.name, price: i.price }; activeCat = c.id; }
+                }); });
+                // after 9 PM today there are no slots left, so start on tomorrow
+                ready = true;
+                renderSlots();
+                if (!$('slots').querySelector('input')) { $('date').value = addDays(todayISO(), 1); }
+                applyLang(false);
+            });
+    })();
+    </script>
+</body>
+</html>

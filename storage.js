@@ -152,33 +152,34 @@ async function putImage(fileName, buffer, contentType) {
   return publicUrl(key);
 }
 
-/* ---------------- private records (membership sign-ups) ----------------
+/* ---------------- private records (membership sign-ups, bookings) ----------------
    These hold customers' names and phone numbers, so they are never public:
    on disk they live in data/ (which the web server refuses to serve), and in
    Spaces they are stored with a private ACL and only read by the server. */
 
-const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
 const RECEIPT_DIR = path.join(DATA_DIR, 'receipts');
+// kind is 'members' or 'bookings'
+function recordsFile(kind) { return path.join(DATA_DIR, kind + '.json'); }
 
-async function readMembers() {
+async function readRecords(kind) {
   if (!useSpaces) {
-    try { return JSON.parse(fs.readFileSync(MEMBERS_FILE, 'utf8')); }
+    try { return JSON.parse(fs.readFileSync(recordsFile(kind), 'utf8')); }
     catch (e) { return []; }
   }
-  try { return JSON.parse((await spacesRequest('GET', 'private/members.json')).toString('utf8')); }
+  try { return JSON.parse((await spacesRequest('GET', 'private/' + kind + '.json')).toString('utf8')); }
   catch (err) { if (/: 404/.test(err.message)) return []; throw err; }
 }
 
-async function writeMembers(list) {
+async function writeRecords(kind, list) {
   const text = JSON.stringify(list, null, 2);
   if (!useSpaces) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    const tmp = MEMBERS_FILE + '.tmp';
+    const tmp = recordsFile(kind) + '.tmp';
     fs.writeFileSync(tmp, text, { mode: 0o600 });
-    fs.renameSync(tmp, MEMBERS_FILE);
+    fs.renameSync(tmp, recordsFile(kind));
     return;
   }
-  await spacesRequest('PUT', 'private/members.json', Buffer.from(text), 'application/json', { 'x-amz-acl': 'private' });
+  await spacesRequest('PUT', 'private/' + kind + '.json', Buffer.from(text), 'application/json', { 'x-amz-acl': 'private' });
 }
 
 async function putReceipt(fileName, buffer, contentType) {
@@ -202,5 +203,5 @@ async function deleteReceipt(fileName) {
 
 module.exports = {
   readContent, writeContent, putImage, useSpaces, CONTENT_FILE, DATA_DIR, UPLOAD_DIR,
-  readMembers, writeMembers, putReceipt, getReceipt, deleteReceipt
+  readRecords, writeRecords, putReceipt, getReceipt, deleteReceipt
 };
