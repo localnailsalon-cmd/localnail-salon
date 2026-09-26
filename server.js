@@ -529,14 +529,14 @@ const server = http.createServer((req, res) => {
   const isPublic = PUBLIC_FILES.includes(rel) || /^images\/[\w./-]+$/.test(rel);
   const safePath = path.normalize(path.join(ROOT, rel));
   if (!isPublic || !safePath.startsWith(ROOT) || safePath.startsWith(DATA_DIR) || rel.includes('..')) {
-    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end('<h1>404 - Page Not Found</h1>');
     return;
   }
 
   fs.readFile(safePath, (err, data) => {
     if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end('<h1>404 - Page Not Found</h1>');
       return;
     }
