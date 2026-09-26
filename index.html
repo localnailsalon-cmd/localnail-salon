@@ -17,7 +17,7 @@
     <meta name="theme-color" content="#0E0F11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Anton&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400&family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="images/film/f001.webp" media="(max-aspect-ratio: 1/1), (max-width: 767px)">
     <link rel="preload" as="image" href="images/film-wide/f001.webp" media="(min-aspect-ratio: 1/1) and (min-width: 768px)">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -121,21 +121,32 @@
 
         /* the loud, condensed headline — the heart of the new look */
         .display {
-            font-family: 'Anton', 'Kantumruy Pro', sans-serif; font-weight: 400;
-            text-transform: uppercase; color: var(--ink);
-            font-size: clamp(2.75rem, 12.6vw, 6.25rem); line-height: .94; letter-spacing: .004em;
+            font-family: 'Bodoni Moda', 'Kantumruy Pro', Georgia, serif; font-weight: 500;
+            font-optical-sizing: auto; text-transform: uppercase; color: var(--ink);
+            font-size: clamp(2.35rem, 10.6vw, 5.4rem); line-height: 1; letter-spacing: .005em;
+            text-wrap: balance;
         }
         .dark .display, .film .display { color: #fff; }
+        /* the accent is a hand-script line in polished chrome, echoing the
+           "Salon" script on the shop sign */
         .acc {
-            background: var(--steel); -webkit-background-clip: text; background-clip: text; color: transparent;
-            padding: 0 .02em;
+            font-family: 'Allura', cursive; font-weight: 400; text-transform: none; letter-spacing: 0;
+            font-size: 1.32em; line-height: .78; display: inline-block; max-width: 100%;
+            padding: 0 .08em .16em .02em; margin-left: .12em;
+            background: var(--steel-dark); -webkit-background-clip: text; background-clip: text; color: transparent;
         }
+        .display br + .acc { margin-left: .9em; }
         .dark .acc, .film .acc { background-image: var(--chrome-light); }
+        .film .display .acc { filter: drop-shadow(0 2px 14px rgba(0, 0, 0, .45)); }
         html[lang="km"] .display {
             font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; text-transform: none;
             font-size: clamp(2rem, 9.2vw, 4.4rem); line-height: 1.32; letter-spacing: 0;
         }
-        html[lang="km"] .acc { padding: .08em .02em; }
+        html[lang="km"] .acc {
+            font-family: 'Kantumruy Pro', sans-serif; font-weight: 400; font-size: 1em; line-height: 1.32;
+            margin-left: 0; padding: .08em .02em;
+        }
+        html[lang="km"] .display br + .acc { margin-left: 0; }
 
         .lede { color: var(--muted); font-size: 1.0625rem; line-height: 1.75; }
         .dark .lede { color: var(--night-muted); }
@@ -248,7 +259,7 @@
                 linear-gradient(0deg, rgba(14, 15, 17, .92) 0%, rgba(14, 15, 17, .55) 30%, rgba(14, 15, 17, 0) 58%);
         }
         .film-meta {
-            position: absolute; top: calc(var(--header-h) + 16px); left: 20px; right: 20px;
+            position: absolute; top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 16px); left: 20px; right: 20px;
             display: flex; justify-content: space-between; align-items: center;
             color: rgba(255, 255, 255, .8); font-size: 11px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase;
         }
@@ -261,6 +272,10 @@
         .chapter.is-live { pointer-events: auto; }
         .chapter .eyebrow { color: rgba(255, 255, 255, .78); margin-bottom: 14px; }
         .chapter .display { text-shadow: 0 2px 30px rgba(0, 0, 0, .35); }
+        .chapter .display { font-size: clamp(2.9rem, 13.4vw, 6.4rem); line-height: .98; }
+        .chapter .display .acc { font-size: 1.12em; white-space: nowrap; }
+        .chapter .display br + .acc { margin-left: .5em; }
+        html[lang="km"] .chapter .display { font-size: clamp(2.1rem, 9.6vw, 4.6rem); line-height: 1.3; }
         .chapter .lede { color: rgba(255, 255, 255, .78); margin-top: 16px; max-width: 34ch; font-size: 1rem; }
         .chapter .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
         .film-hint {
@@ -301,7 +316,7 @@
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
         .stats li { list-style: none; padding: 18px 8px 16px 0; }
         .stats li + li { padding-left: 14px; border-left: 1px solid var(--border); }
-        .stats b { display: block; font-family: 'Anton', sans-serif; font-weight: 400; font-size: clamp(1.9rem, 9vw, 3rem); line-height: 1; color: var(--ink); }
+        .stats b { display: block; font-family: 'Bodoni Moda', Georgia, serif; font-weight: 500; font-size: clamp(1.8rem, 8.4vw, 2.8rem); font-variant-numeric: lining-nums; line-height: 1; color: var(--ink); }
         .stats span { display: block; margin-top: 6px; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
         html[lang="km"] .stats span { font-size: 12px; letter-spacing: 0; text-transform: none; }
         .note-card {
@@ -342,7 +357,7 @@
         .m-top { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
         .m-name { color: #fff; font-weight: 600; font-size: 1.05rem; }
         .m-price {
-            font-family: 'Anton', sans-serif; font-size: 1.55rem; line-height: 1; white-space: nowrap;
+            font-family: 'Bodoni Moda', Georgia, serif; font-weight: 600; font-size: 1.5rem; line-height: 1; white-space: nowrap;
             background: var(--chrome-light); -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .m-desc { color: var(--night-muted); font-size: .9rem; line-height: 1.6; }
@@ -382,7 +397,7 @@
         /* ===== Inside the salon ===== */
         .pillars { display: grid; gap: 0; }
         .pillars li { list-style: none; display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 18px 0; border-top: 1px solid var(--night-line); }
-        .pillars li span { font-family: 'Anton', sans-serif; font-size: 1.1rem; color: var(--night-muted); }
+        .pillars li span { font-family: 'Bodoni Moda', Georgia, serif; font-style: italic; font-size: 1.15rem; color: var(--night-muted); }
         .pillars h3 { color: #fff; font-weight: 600; font-size: 1.05rem; margin-bottom: 2px; }
         .pillars p { color: var(--night-muted); line-height: 1.6; font-size: .95rem; }
         .salon-strip {
@@ -438,7 +453,7 @@
         .mobile-menu a.m-link {
             display: flex; justify-content: space-between; align-items: baseline;
             padding: 16px 0; border-bottom: 1px solid var(--night-line);
-            font-family: 'Anton', 'Kantumruy Pro', sans-serif; text-transform: uppercase; font-size: 2.1rem; color: #fff; text-decoration: none;
+            font-family: 'Bodoni Moda', 'Kantumruy Pro', Georgia, serif; font-weight: 500; text-transform: uppercase; font-size: 1.9rem; color: #fff; text-decoration: none;
         }
         html[lang="km"] .mobile-menu a.m-link { font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; text-transform: none; font-size: 1.6rem; }
         .mobile-menu a.m-link small { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: .2em; color: var(--night-muted); }
@@ -714,27 +729,27 @@
 
                 <div class="chapter" data-from="0" data-to="0.11">
                     <p class="eyebrow" data-i18n="film.e1">Nails &middot; Beauty &middot; Self Care</p>
-                    <h1 class="display" data-i18n="film.t1">Good nails,<br><span class="acc">good mood.</span></h1>
+                    <h1 class="display" data-i18n="film.t1">Polished<br><span class="acc">to perfection.</span></h1>
                 </div>
                 <div class="chapter" data-from="0.13" data-to="0.23">
                     <p class="eyebrow" data-i18n="film.e2">02 &mdash; Step in</p>
-                    <h2 class="display" data-i18n="film.t2">Off the street,<br>into <span class="acc">LocalNail.</span></h2>
+                    <h2 class="display" data-i18n="film.t2">Come in,<br><span class="acc">get pampered.</span></h2>
                 </div>
                 <div class="chapter" data-from="0.27" data-to="0.38">
-                    <p class="eyebrow" data-i18n="film.e3">03 &mdash; Pedicure lounge</p>
-                    <h2 class="display" data-i18n="film.t3">Seats made for<br><span class="acc">slowing down.</span></h2>
+                    <p class="eyebrow" data-i18n="film.e3">03 &mdash; Pedicure spa</p>
+                    <h2 class="display" data-i18n="film.t3">Soak, scrub<br><span class="acc">&amp; relax.</span></h2>
                 </div>
                 <div class="chapter" data-from="0.41" data-to="0.52">
-                    <p class="eyebrow" data-i18n="film.e4">04 &mdash; Nail stations</p>
-                    <h2 class="display" data-i18n="film.t4">Beauty in<br>the <span class="acc">details.</span></h2>
+                    <p class="eyebrow" data-i18n="film.e4">04 &mdash; Manicure bar</p>
+                    <h2 class="display" data-i18n="film.t4">Gel, chrome<br><span class="acc">&amp; nail art.</span></h2>
                 </div>
                 <div class="chapter" data-from="0.56" data-to="0.70">
                     <p class="eyebrow" data-i18n="film.e5h">05 &mdash; Hair studio</p>
-                    <h2 class="display" data-i18n="film.t5h">Hair, too.<br><span class="acc">Wash, spa &amp; style.</span></h2>
+                    <h2 class="display" data-i18n="film.t5h">Wash, spa<br><span class="acc">&amp; blow-dry.</span></h2>
                 </div>
                 <div class="chapter" data-from="0.78" data-to="1.01">
                     <p class="eyebrow" data-i18n="film.e5">06 &mdash; Your moment</p>
-                    <h2 class="display" data-i18n="film.t5">Your time.<br>Your nails.<br><span class="acc">Your moment.</span></h2>
+                    <h2 class="display" data-i18n="film.t5">Treat yourself.<br><span class="acc">You deserve it.</span></h2>
                     <div class="actions">
                         <a href="#book" class="btn btn-chrome js-book" data-i18n="btn.bookSeat">Book your seat</a>
                         <a href="#services" class="btn btn-ghost" data-i18n="btn.viewMenu">View menu</a>
@@ -965,17 +980,17 @@
             'btn.book': 'កក់', 'btn.bookAppt': 'កក់ពេលណាត់', 'btn.bookSeat': 'កក់កន្លែងរបស់អ្នក', 'btn.viewMenu': 'មើលតារាងតម្លៃ',
             'film.place': 'សៀមរាប &middot; ម៉ោង ១០ ព្រឹក &ndash; ១០ យប់',
             'film.e1': 'ក្រចក &middot; សម្រស់ &middot; ការថែទាំខ្លួន',
-            'film.t1': 'ក្រចកស្អាត<br><span class="acc">អារម្មណ៍ល្អ</span>',
+            'film.t1': 'ក្រចកស្អាត<br><span class="acc">ឥតខ្ចោះ</span>',
             'film.e2': '០២ &mdash; ចូលមកក្នុង',
-            'film.t2': 'ពីផ្លូវធំ<br>ចូលមក <span class="acc">LocalNail</span>',
-            'film.e3': '០៣ &mdash; កន្លែងធ្វើក្រចកជើង',
-            'film.t3': 'កៅអីសម្រាប់<br><span class="acc">ការសម្រាកលំហែ</span>',
-            'film.e4': '០៤ &mdash; តុធ្វើក្រចកដៃ',
-            'film.t4': 'ភាពស្រស់ស្អាត<br><span class="acc">នៅក្នុងភាពល្អិតល្អន់</span>',
+            'film.t2': 'ចូលមក<br><span class="acc">ឲ្យយើងថែរក្សាអ្នក</span>',
+            'film.e3': '០៣ &mdash; ស្ប៉ាក្រចកជើង',
+            'film.t3': 'ត្រាំ ដុស<br><span class="acc">និងសម្រាក</span>',
+            'film.e4': '០៤ &mdash; ធ្វើក្រចកដៃ',
+            'film.t4': 'ជែល ក្រូម<br><span class="acc">និងគូររូបលើក្រចក</span>',
             'film.e5h': '០៥ &mdash; ផ្នែកសក់',
-            'film.t5h': 'សេវាសក់ផងដែរ<br><span class="acc">កក់ ស្ប៉ា និងរចនាម៉ូដ</span>',
+            'film.t5h': 'កក់ ស្ប៉ា<br><span class="acc">និងផ្លុំសក់</span>',
             'film.e5': '០៦ &mdash; ពេលវេលារបស់អ្នក',
-            'film.t5': 'ពេលវេលារបស់អ្នក<br>ក្រចករបស់អ្នក<br><span class="acc">គ្រាពិសេសរបស់អ្នក</span>',
+            'film.t5': 'ថែខ្លួនឯង<br><span class="acc">ព្រោះអ្នកសមនឹងទទួល</span>',
             'film.hint': 'រំកិលចុះ ដើម្បីចូលក្នុងហាង',
             'ticker': 'ក្រចកស្អាត អារម្មណ៍ល្អ &mdash; ក្រចក &bull; សម្រស់ &bull; ការថែទាំខ្លួន &mdash;',
             'about.eyebrow': 'អំពី LocalNail',
