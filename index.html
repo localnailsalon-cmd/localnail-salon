@@ -170,6 +170,13 @@
             transition: background .3s ease;
         }
         .site-header.is-solid { background: rgba(14, 15, 17, .88); }
+        /* over the film the glass blur would be re-computed on every frame of
+           video, which makes phones stutter; a plain fade does the same job */
+        .site-header.in-film {
+            -webkit-backdrop-filter: none; backdrop-filter: none;
+            background: linear-gradient(180deg, rgba(14, 15, 17, .72), rgba(14, 15, 17, .25));
+            border-bottom-color: transparent;
+        }
         .site-header .bar { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .logo { font-family: 'Playfair Display', serif; color: #fff; letter-spacing: -.01em; white-space: nowrap; text-decoration: none; font-size: 1.35rem; }
         .logo span {
@@ -227,6 +234,7 @@
         .film-stage {
             position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
         }
+        .film-stage canvas { transform: translateZ(0); }
         .film-stage canvas, .film-poster {
             position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover;
         }
@@ -1303,105 +1311,133 @@
             var section = document.getElementById('top');
             var stage = document.getElementById('filmStage');
             var canvas = document.getElementById('filmCanvas');
-            var ctx = canvas.getContext('2d');
-            var chapters = [].slice.call(section.querySelectorAll('.chapter'));
+            var ctx = canvas.getContext('2d', { alpha: false });
+            var chapters = [].slice.call(section.querySelectorAll('.chapter')).map(function (el) {
+                return { el: el, a: parseFloat(el.dataset.from), b: parseFloat(el.dataset.to), o: -1, y: 0 };
+            });
             var hint = document.getElementById('filmHint');
             var bar = document.getElementById('filmBar');
             var num = document.getElementById('filmNum');
-            var N = 167, frames = new Array(N), ready = new Array(N);
+            var header = document.getElementById('siteHeader');
+            var N = 251, frames = new Array(N), ready = new Array(N);
             var FOCUS_Y = 0.5;
 
             if (reduceMotion.matches) { section.classList.add('is-static'); return; }
 
+            /* ---- Loading: every 8th frame first so the whole walk is there
+               early, then the gaps. Each frame is decoded before it is used,
+               so painting it never stalls the scroll. ---- */
             function src(i) { return 'images/film/f' + ('00' + (i + 1)).slice(-3) + '.webp'; }
-            var next = 1, active = 0;
+            var order = [], seen = {};
+            [8, 4, 2, 1].forEach(function (step) {
+                for (var i = 0; i < N; i += step) if (!seen[i]) { seen[i] = 1; order.push(i); }
+            });
+            var q = 0, active = 0;
+            function done(i, bmp) { frames[i] = bmp; ready[i] = true; dirty = true; kick(); }
+            function fetchFrame(i, cb) {
+                var img = new Image();
+                img.src = src(i);
+                var decoded = img.decode ? img.decode() : new Promise(function (r, j) { img.onload = r; img.onerror = j; });
+                decoded.then(function () {
+                    if (window.createImageBitmap) return createImageBitmap(img).then(function (b) { done(i, b); }, function () { done(i, img); });
+                    done(i, img);
+                }).catch(function () {}).then(cb);
+            }
             function pump() {
-                while (active < 6 && next < N) {
-                    (function (i) {
-                        active++;
-                        var img = new Image();
-                        img.decoding = 'async';
-                        img.onload = function () { ready[i] = true; active--; dirty = true; pump(); };
-                        img.onerror = function () { active--; pump(); };
-                        img.src = src(i);
-                        frames[i] = img;
-                    })(next++);
+                while (active < 4 && q < order.length) {
+                    active++;
+                    fetchFrame(order[q++], function () { active--; pump(); });
                 }
             }
-            var first = new Image();
-            first.onload = function () { ready[0] = true; dirty = true; pump(); kick(); };
-            first.onerror = pump;
-            first.src = src(0);
-            frames[0] = first;
+            pump();
 
-            function nearest(i) {
-                for (var d = 0; d < N; d++) {
-                    if (i - d >= 0 && ready[i - d]) return i - d;
-                    if (i + d < N && ready[i + d]) return i + d;
-                }
-                return -1;
-            }
+            function nearestBelow(i) { for (var k = i; k >= 0; k--) if (ready[k]) return k; for (k = i + 1; k < N; k++) if (ready[k]) return k; return -1; }
 
-            var cw = 0, ch = 0;
-            function size() {
-                var dpr = Math.min(window.devicePixelRatio || 1, 2);
+            /* ---- Geometry is measured on resize only, never while scrolling ---- */
+            var cw = 0, ch = 0, top = 0, travel = 1;
+            function measure() {
+                var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
                 var w = Math.round(stage.clientWidth * dpr), h = Math.round(stage.clientHeight * dpr);
-                if (w === cw && h === ch) return false;
-                cw = canvas.width = w; ch = canvas.height = h;
-                return true;
+                if (w !== cw || h !== ch) { cw = canvas.width = w; ch = canvas.height = h; dirty = true; }
+                top = section.getBoundingClientRect().top + window.scrollY;
+                travel = Math.max(section.offsetHeight - stage.offsetHeight, 1);
             }
-            function paint(i) {
-                var img = frames[i];
-                var iw = img.naturalWidth, ih = img.naturalHeight;
+            function drawFrame(img, alpha) {
+                var iw = img.width, ih = img.height;
                 var s = Math.max(cw / iw, ch / ih);
                 var dw = iw * s, dh = ih * s;
+                ctx.globalAlpha = alpha;
                 ctx.drawImage(img, (cw - dw) / 2, (ch - dh) * FOCUS_Y, dw, dh);
             }
-
-            function target() {
-                var r = section.getBoundingClientRect();
-                var travel = section.offsetHeight - stage.offsetHeight;
-                return travel > 0 ? Math.min(Math.max(-r.top / travel, 0), 1) : 0;
-            }
+            function target() { return Math.min(Math.max((window.scrollY - top) / travel, 0), 1); }
             function ramp(x, a, b) { return Math.min(Math.max((x - a) / (b - a), 0), 1); }
 
-            var cur = target(), shown = -1, dirty = true, raf = 0, inView = true;
-            function frame() {
+            var cur = 0, shownPos = -1, dirty = true, raf = 0, inView = true, last = 0, chapShown = -1;
+            function frame(now) {
                 raf = 0;
+                var dt = last ? Math.min(now - last, 64) : 16.7;
+                last = now;
                 var goal = target();
-                cur += (goal - cur) * 0.16;
-                if (Math.abs(goal - cur) < 0.0004) cur = goal;
+                // time-based easing: the same glide at 60 Hz and 120 Hz
+                cur += (goal - cur) * (1 - Math.pow(1 - 0.14, dt / 16.7));
+                if (Math.abs(goal - cur) < 0.00015) cur = goal;
 
-                if (size()) dirty = true;
-                var want = nearest(Math.round(cur * (N - 1)));
-                if (want >= 0 && (want !== shown || dirty)) {
-                    paint(want); shown = want; dirty = false;
-                    if (!section.classList.contains('has-frame')) section.classList.add('has-frame');
+                /* Between two frames, the next one fades over the current one,
+                   so the picture moves continuously instead of stepping. */
+                var pos = cur * (N - 1);
+                if (dirty || Math.abs(pos - shownPos) > 0.01) {
+                    var i = Math.floor(pos), f = pos - i;
+                    var a = ready[i] ? i : nearestBelow(i);
+                    if (a >= 0) {
+                        drawFrame(frames[a], 1);
+                        if (a === i && f > 0.02 && i + 1 < N && ready[i + 1]) drawFrame(frames[i + 1], f);
+                        shownPos = pos; dirty = false;
+                        if (!section.classList.contains('has-frame')) section.classList.add('has-frame');
+                    }
                 }
 
                 var chap = 0;
-                chapters.forEach(function (el, i) {
-                    var a = parseFloat(el.dataset.from), b = parseFloat(el.dataset.to);
-                    var fadeIn = i === 0 ? 1 : ramp(cur, a, a + 0.035);
-                    var fadeOut = 1 - ramp(cur, b - 0.035, b);
-                    var o = Math.min(fadeIn, fadeOut);
-                    var y = cur < (a + b) / 2 ? (1 - fadeIn) * 26 : -(1 - fadeOut) * 26;
-                    el.style.opacity = o.toFixed(3);
-                    el.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
-                    el.classList.toggle('is-live', o > 0.6);
-                    if (cur >= a - 0.02) chap = i;
+                chapters.forEach(function (c, k) {
+                    var fin = k === 0 ? 1 : ramp(cur, c.a, c.a + 0.035);
+                    var fout = 1 - ramp(cur, c.b - 0.035, c.b);
+                    var o = Math.round(Math.min(fin, fout) * 100) / 100;
+                    var y = Math.round((cur < (c.a + c.b) / 2 ? (1 - fin) * 26 : -(1 - fout) * 26) * 2) / 2;
+                    if (o !== c.o || y !== c.y) {
+                        c.el.style.opacity = o;
+                        c.el.style.transform = 'translate3d(0,' + y + 'px,0)';
+                        c.el.style.visibility = o > 0 ? 'visible' : 'hidden';
+                        c.el.classList.toggle('is-live', o > 0.6);
+                        c.o = o; c.y = y;
+                    }
+                    if (cur >= c.a - 0.02) chap = k;
                 });
-                num.textContent = '0' + (chap + 1);
-                hint.style.opacity = Math.max(0, 1 - cur / 0.03).toFixed(3);
+                if (chap !== chapShown) { num.textContent = '0' + (chap + 1); chapShown = chap; }
+                hint.style.opacity = Math.max(0, 1 - cur / 0.03).toFixed(2);
                 bar.style.transform = 'scaleX(' + cur.toFixed(4) + ')';
 
-                if (inView && (Math.abs(goal - cur) > 0 || dirty)) raf = requestAnimationFrame(frame);
+                if (inView && (goal !== cur || dirty)) raf = requestAnimationFrame(frame);
+                else last = 0;
             }
             function kick() { if (!raf && inView) raf = requestAnimationFrame(frame); }
 
-            new IntersectionObserver(function (e) { inView = e[0].isIntersecting; kick(); }).observe(section);
+            new IntersectionObserver(function (e) {
+                inView = e[0].isIntersecting;
+                header.classList.toggle('in-film', inView);
+                kick();
+            }).observe(section);
             window.addEventListener('scroll', kick, { passive: true });
-            window.addEventListener('resize', function () { dirty = true; kick(); }, { passive: true });
+            // the phone's toolbar showing and hiding fires resize; only re-measure
+            // when the width changes or the height really moves
+            var lastW = window.innerWidth, lastH = window.innerHeight;
+            window.addEventListener('resize', function () {
+                if (window.innerWidth !== lastW || Math.abs(window.innerHeight - lastH) > 120) {
+                    lastW = window.innerWidth; lastH = window.innerHeight;
+                    measure(); kick();
+                }
+            }, { passive: true });
+            window.addEventListener('load', function () { measure(); kick(); });
+            measure();
+            cur = target();
             kick();
         })();
 
