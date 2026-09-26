@@ -226,7 +226,7 @@ function telegram(method, body, contentType) {
 }
 function notifyTelegram(record, receipt) {
   if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) return Promise.resolve();
-  const pay = 'Payment: ' + (record.payment === 'khqr' ? 'KHQR' + (receipt ? ' — slip attached' : ' — no slip yet') : 'Pay at the salon');
+  const pay = record.payment === 'khqr' ? 'Payment: KHQR' + (receipt ? ' — slip attached' : ' — no slip yet') : '';
   const text = (record.kind === 'booking' ? [
     '📅 New booking request',
     'Name: ' + record.name,

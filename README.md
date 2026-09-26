@@ -32,8 +32,9 @@ becomes a small WebP file.
 
 Customers book at `/book` (every Book button on the site goes there unless a
 booking link is set in *Salon details*). They pick one or more services, a date
-up to 3 months ahead and a half-hour time inside the opening hours, then pay at
-the salon or by KHQR. It is a request: staff confirm by phone.
+up to 3 months ahead and a half-hour time inside the opening hours, and leave
+their name and phone. There is no online payment: staff confirm by phone and
+the customer pays at the salon.
 
 - Requests appear in the staff area, tab *Bookings*, soonest first, with the
   services and a total (when every price is a plain amount).
@@ -42,23 +43,20 @@ the salon or by KHQR. It is a request: staff confirm by phone.
 
 ## Monthly membership
 
-Customers join at `/membership`: they pick a plan, enter their name, phone and
-start date, and choose **Pay at the salon** or **Pay now with KHQR** (with an
-optional payment screenshot).
+Customers join at `/membership`: they pick a plan and enter their name, phone
+and start date. There is no online payment; staff confirm by phone and payment
+is made in person at the salon.
 
-- **Plans, prices and the KHQR image** are edited in the staff area, tab
-  *Membership*. A price that starts with `[` shows as "Price on request".
-  Without a KHQR image, only "Pay at the salon" is offered.
+- **Plans and prices** are edited in the staff area, tab *Membership*. A price
+  that starts with `[` shows as "Price on request".
 - **Sign-ups** appear in the tab *Sign-ups*, where staff set a status
-  (New → Contacted → Paid → Active member) and a note. KHQR money goes straight
-  to the shop's bank account; match each screenshot against the bank app.
-- Sign-ups and payment screenshots are private: `data/members.json` and
-  `data/receipts/` on disk, or `private/` with a private ACL in Spaces.
+  (New → Contacted → Paid → Active member) and a note.
+- Sign-ups and bookings are private: `data/*.json` on disk, or `private/` with
+  a private ACL in Spaces.
 
 ### Telegram alerts
 
-Every new booking and membership sign-up can be sent to the salon's Telegram
-(with the payment screenshot when there is one):
+Every new booking and membership sign-up can be sent to the salon's Telegram:
 
 1. In Telegram, message **@BotFather** → `/newbot` → copy the bot token.
 2. Add the bot to the salon's group (or message it directly), send any message,

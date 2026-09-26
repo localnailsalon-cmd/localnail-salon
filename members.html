@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monthly Membership — LocalNail Salon</title>
-    <meta name="description" content="Join the LocalNail Salon monthly membership in Siem Reap: pick a plan, choose a start date, and pay at the salon or by KHQR.">
+    <meta name="description" content="Join the LocalNail Salon monthly membership in Siem Reap: pick a plan, choose a start date, and we confirm by phone.">
     <link rel="canonical" href="https://localnailsalon.tech/membership">
     <meta name="theme-color" content="#0E0F11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -201,31 +201,9 @@
                 <div class="hp" aria-hidden="true"><label>Website <input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
             </div>
 
-            <div class="step">
-                <h2><b>03</b><span data-i="s3">Payment</span></h2>
-                <div class="pay">
-                    <label class="opt"><input type="radio" name="payment" value="salon" checked>
-                        <span class="card"><b data-i="paySalon">Pay at the salon</b><small data-i="paySalonD">Pay on your first visit. We call to confirm.</small></span>
-                    </label>
-                    <label class="opt" id="khqrOpt"><input type="radio" name="payment" value="khqr">
-                        <span class="card"><b data-i="payQr">Pay now with KHQR</b><small data-i="payQrD">Scan with ABA or any Bakong bank app.</small></span>
-                    </label>
-                </div>
-                <div class="qr-box" id="qrBox" hidden>
-                    <img id="qrImg" alt="KHQR code for paying LocalNail Salon">
-                    <div>
-                        <h3 id="qrName"></h3>
-                        <p data-i="qrHow">Open your bank app, scan the code and pay the amount below. Then add a screenshot of the payment so we can match it.</p>
-                        <div class="qr-amount" id="qrAmount"></div>
-                        <label class="upload"><input type="file" id="slip" accept="image/*"><span data-i="slip">Add payment screenshot</span></label>
-                        <div class="slip-preview" id="slipPreview" hidden><img id="slipImg" alt=""><span data-i="slipOk">Screenshot added</span> <button type="button" class="linkish" id="slipRemove" data-i="remove">Remove</button></div>
-                    </div>
-                </div>
-            </div>
-
             <div class="form-err" id="formErr" hidden></div>
             <button class="submit" type="submit" id="submitBtn" data-i="submit">Join the membership</button>
-            <p class="fine" data-i="fine">We only use your name and number to confirm your membership.</p>
+            <p class="fine" data-i="fine">No payment online. We call to confirm, and you pay the salon in person.</p>
         </form>
 
         <section class="done" id="done" hidden>
@@ -252,7 +230,7 @@
             payQr: 'បង់ឥឡូវតាម KHQR', payQrD: 'ស្កេនជាមួយ ABA ឬកម្មវិធីធនាគារ Bakong ណាមួយ។',
             qrHow: 'បើកកម្មវិធីធនាគារ ស្កេនកូដ ហើយបង់ចំនួនខាងក្រោម។ បន្ទាប់មកបញ្ចូលរូបថតអេក្រង់នៃការបង់ប្រាក់ ដើម្បីឲ្យយើងផ្ទៀងផ្ទាត់។',
             slip: 'បញ្ចូលរូបថតការបង់ប្រាក់', slipOk: 'បានបញ្ចូលរូបថតរួច', remove: 'លុប',
-            submit: 'ចុះឈ្មោះជាសមាជិក', fine: 'យើងប្រើឈ្មោះ និងលេខទូរស័ព្ទរបស់អ្នក សម្រាប់បញ្ជាក់សមាជិកភាពប៉ុណ្ណោះ។',
+            submit: 'ចុះឈ្មោះជាសមាជិក', fine: 'មិនបង់ប្រាក់តាមអនឡាញទេ។ យើងនឹងហៅបញ្ជាក់ ហើយអ្នកបង់ប្រាក់ដោយផ្ទាល់នៅហាង។',
             doneT: 'អរគុណ<br><span class="acc">ជួបគ្នាឆាប់ៗ</span>'
         };
         var T = {
@@ -321,44 +299,9 @@
         });
 
         /* payment */
-        function payment() { return (document.querySelector('input[name="payment"]:checked') || {}).value; }
-        function updateQr() {
-            var hasQr = isSet(M.khqrImage);
-            $('khqrOpt').hidden = !hasQr;
-            if (!hasQr && payment() === 'khqr') document.querySelector('input[value="salon"]').checked = true;
-            var show = hasQr && payment() === 'khqr';
-            $('qrBox').hidden = !show;
-            if (!show) return;
-            $('qrImg').src = M.khqrImage;
-            $('qrName').textContent = isSet(M.khqrName) ? M.khqrName : 'LocalNail Salon';
-            var plan = currentPlan();
-            $('qrAmount').textContent = plan && isSet(plan.price) ? plan.price : '';
-        }
-        document.querySelectorAll('input[name="payment"]').forEach(function (r) { r.addEventListener('change', updateQr); });
-
-        // the payment screenshot is shrunk on the phone before it is sent
-        var slipData = '';
-        $('slip').addEventListener('change', function () {
-            var file = this.files && this.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function (ev) {
-                var img = new Image();
-                img.onload = function () {
-                    var max = 1400, w = img.width, h = img.height, s = Math.min(1, max / Math.max(w, h));
-                    var c = document.createElement('canvas');
-                    c.width = Math.round(w * s); c.height = Math.round(h * s);
-                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-                    slipData = c.toDataURL('image/jpeg', 0.85);
-                    $('slipImg').src = slipData;
-                    $('slipPreview').hidden = false;
-                };
-                img.onerror = function () { showForm(t('errSlip')); };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-        $('slipRemove').addEventListener('click', function () { slipData = ''; $('slip').value = ''; $('slipPreview').hidden = true; });
+        // payment is arranged in person at the salon
+        function payment() { return 'salon'; }
+        function updateQr() {}
 
         /* validation */
         function showErr(field, msg) {
@@ -401,7 +344,7 @@
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     planId: selected, name: name, phone: phone, startDate: start, note: $('note').value.trim(),
-                    payment: payment(), receipt: payment() === 'khqr' ? slipData : '', website: $('website').value
+                    payment: payment(), receipt: '', website: $('website').value
                 })
             }).then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
               .then(function (res) {

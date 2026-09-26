@@ -449,16 +449,6 @@
                 }).join('') +
                 '<div class="savebar-space"></div>' +
                 '<button class="btn btn-ghost btn-sm" data-add="membership.plans" data-kind="plan">+ Add plan</button>' +
-            '</div>' +
-            '<div class="card"><h2>KHQR payment</h2>' +
-                '<p class="hint">Upload the shop’s KHQR (in ABA: Receive money → QR, then save or screenshot it). When there is no QR here, customers only see “Pay at the salon”. Payments go straight to the shop’s bank account; check each payment screenshot in Sign-ups against the bank app.</p>' +
-                '<div class="photo-row" style="margin-top:12px">' +
-                    '<div class="thumb"><img src="' + esc(M.khqrImage || '') + '" alt=""></div>' +
-                    '<div class="photo-fields">' +
-                        '<label class="file-label">Upload KHQR<input type="file" accept="image/*" data-upload="membership.khqrImage"></label> ' +
-                        (M.khqrImage ? '<button class="btn btn-danger btn-sm" data-clear="membership.khqrImage">Remove QR</button>' : '') +
-                        field('Account name shown above the QR', 'membership.khqrName', { placeholder: 'LOCALNAIL SALON' }) +
-                    '</div></div>' +
             '</div>';
     }
 
@@ -537,7 +527,7 @@
                             '<a href="' + esc(telHref(m.phone)) + '">' + esc(m.phone) + '</a>' +
                             '<span class="su-meta">received ' + esc(new Date(m.createdAt).toLocaleString()) + '</span></div>' +
                         '<dl class="su-grid">' + cfg.rows(m) +
-                            '<dt>Payment</dt><dd>' + (m.payment === 'khqr' ? 'KHQR' + (m.receipt ? ' — screenshot below' : ' — no screenshot') : 'Pay at the salon') + '</dd>' +
+                            (m.payment === 'khqr' ? '<dt>Payment</dt><dd>KHQR' + (m.receipt ? ' — screenshot below' : ' — no screenshot') + '</dd>' : '') +
                             (m.note ? '<dt>Customer note</dt><dd>' + esc(m.note) + '</dd>' : '') +
                         '</dl>' +
                         (m.receipt ? '<a href="/api/' + kind + '/' + esc(m.id) + '/receipt" target="_blank" rel="noopener"><img class="slip" src="/api/' + kind + '/' + esc(m.id) + '/receipt" alt="Payment screenshot from ' + esc(m.name) + '"></a>' : '') +
