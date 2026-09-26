@@ -33,8 +33,8 @@ becomes a small WebP file.
 Customers book at `/book` (every Book button on the site goes there unless a
 booking link is set in *Salon details*). They pick one or more services, a date
 up to 3 months ahead and a half-hour time inside the opening hours, and leave
-their name and phone. There is no online payment: staff confirm by phone and
-the customer pays at the salon.
+their name and phone. The request goes to the salon, and staff contact the
+customer to confirm the details.
 
 - Requests appear in the staff area, tab *Bookings*, soonest first, with the
   services and a total (when every price is a plain amount).
@@ -44,8 +44,8 @@ the customer pays at the salon.
 ## Monthly membership
 
 Customers join at `/membership`: they pick a plan and enter their name, phone
-and start date. There is no online payment; staff confirm by phone and payment
-is made in person at the salon.
+and start date. The request goes to the salon, and staff contact the customer
+to talk through the details.
 
 - **Plans and prices** are edited in the staff area, tab *Membership*. A price
   that starts with `[` shows as "Price on request".
